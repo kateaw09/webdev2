@@ -1,0 +1,14 @@
+.container {
+    display: flex;
+    margin: 10px;
+    padding: 10px;
+    background-color: aliceblue;
+}
+
+.container .item {
+    width: 100px;
+    margin: 10px;
+    padding: 10px;
+    background-color: aqua;
+    text-align: center;
+}

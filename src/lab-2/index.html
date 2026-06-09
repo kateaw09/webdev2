@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navbar</title>
+
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        .navbar-contriner {
+            background: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+            color: white;
+        }
+
+        .logo {
+            font-size: large;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            padding: 2rem 0;
+        }
+
+        .navbar-contriner ul {
+            list-style: none;
+            display: flex;
+            gap: .5rem;
+        }
+
+        .navbar-contriner ul li a {
+            padding: 1rem;
+            color: #ffff;
+            text-decoration: none;
+            border-radius: .5rem;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-contriner ul li a.active,
+        .navbar-contriner ul li a:hover {
+            background-color: #666666;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-contriner">
+            <a href="index.html" class="logo">KT-WEB</a>
+
+            <ul>
+                <li><a href="#" class="active">หน้าแรก</a></li>
+                <li><a href="#">เกี่ยวกับเรา</a></li>
+                <li><a href="#">ติดต่อ</a></li>
+            </ul>
+        </div>
+    </nav>
+</body>
+
+</html>
