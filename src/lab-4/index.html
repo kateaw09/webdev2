@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio</title>
+    <style>
+        /* ======================================== */
+        /* RESET & BASE STYLES      */
+        /* ======================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Sarabun', 'Prompt', 'Kanit', sans-serif;
+            background: #F8F9FA;
+            color: #2D2B55;
+            line-height: 1.7;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .navbar {
+            background: #2D2B55;
+            /* แทน --secondary */
+            padding: 0 30px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 25px rgba(45, 43, 85, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        /* กิจกรรมที่ 3.3: การจัดวางด้วย Flexbox */
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            color: #FFFFFF;
+            /* แทน --white */
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding: 18px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            /* แทน --transition */
+        }
+
+        .logo span {
+            color: #FFD166;
+            /* แทน --accent */
+        }
+
+        /* กิจกรรมที่ 4.2: Transition & Transform */
+        .logo:hover {
+            transform: scale(1.05);
+            color: #FFD166;
+            /* แทน --accent */
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 6px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-menu a {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            display: block;
+            border-radius: 12px;
+            /* แทน --radius-sm */
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            /* แทน --transition */
+            font-weight: 500;
+            font-size: 0.95rem;
+            position: relative;
+        }
+
+        .nav-menu a:hover {
+            background: #6C63FF;
+            /* แทน --primary */
+            color: #FFFFFF;
+            /* แทน --white */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 99, 255, 0.4);
+        }
+
+        .nav-menu .active {
+            background: #6C63FF;
+            /* แทน --primary */
+            color: #FFFFFF;
+            /* แทน --white */
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.3);
+        }
+
+        .nav-menu .active::after {
+            content: '✦';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #FFD166;
+            /* แทน --accent */
+            font-size: 12px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .flex-layout {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+        }
+
+        /* ======================================== */
+        /* กิจกรรมที่ 2.1: MAIN CONTENT - Semantic HTML */
+        /* ======================================== */
+        .content {
+            flex: 3;
+            background: #FFFFFF;
+            /* แทน --white */
+            padding: 40px;
+            border-radius: 20px;
+            /* แทน --radius-md */
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.15);
+            /* แทน --shadow-sm */
+            border: 1px solid rgba(108, 99, 255, 0.08);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 20px 0 30px;
+            border-bottom: 2px solid #F8F9FA;
+            /* แทน --light */
+            margin-bottom: 35px;
+        }
+
+        .hero-avatar {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #6C63FF, #3F3D8E);
+            /* แทน --gradient-main */
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 4rem;
+            box-shadow: 0 8px 30px rgba(108, 99, 255, 0.2);
+            /* แทน --shadow-md */
+            border: 4px solid #FFFFFF;
+            /* แทน --white */
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            /* แทน --transition */
+        }
+
+        /* กิจกรรมที่ 4.2: Transition & Transform */
+        .hero-avatar:hover {
+            transform: scale(1.05) rotate(-5deg);
+        }
+
+        .hero h1 {
+            color: #2D2B55;
+            /* แทน --secondary */
+            font-size: 2.4rem;
+            margin-bottom: 8px;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, #6C63FF, #3F3D8E);
+            /* แทน --gradient-main */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            color: #6C6A8A;
+            /* แทน --text-light */
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .hero-tags {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .hero-tags span {
+            background: #F8F9FA;
+            /* แทน --light */
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            color: #6C63FF;
+            /* แทน --primary */
+            font-weight: 600;
+            border: 1px solid rgba(108, 99, 255, 0.15);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            /* แทน --transition */
+        }
+
+        .hero-tags span:hover {
+            background: #6C63FF;
+            /* แทน --primary */
+            color: #FFFFFF;
+            /* แทน --white */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.15);
+            /* แทน --shadow-sm */
+        }
+
+        /* Section Headers */
+        .section-title {
+            color: #2D2B55;
+            /* แทน --secondary */
+            font-size: 1.6rem;
+            margin: 40px 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(to right, #6C63FF, transparent);
+            /* แทน --primary */
+        }
+
+        /* ======================================== */
+        /* กิจกรรมที่ 3.3: CARD GRID - ผลงานของฉัน   */
+        /* ======================================== */
+        .card-grid {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        /* กิจกรรมที่ 4.1: Box Model */
+        .card {
+            flex: 1 1 260px;
+            background: linear-gradient(135deg, #FFFFFF, #F0EFFF);
+            /* แทน --gradient-card */
+            border-radius: 20px;
+            /* แทน --radius-md */
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.15);
+            /* แทน --shadow-sm */
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            /* แทน --transition */
+            border: 1px solid rgba(108, 99, 255, 0.06);
+            cursor: default;
+            position: relative;
+        }
+
+        .skills-grid {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .skill-item {
+            background: #F8F9FA;
+            /* แทน --light */
+            padding: 10px 22px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #2D2B55;
+            /* แทน --secondary */
+            border: 1px solid rgba(108, 99, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            /* แทน --transition */
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .skill-item:hover {
+            background: #6C63FF;
+            /* แทน --primary */
+            color: #FFFFFF;
+            /* แทน --white */
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.15);
+            /* แทน --shadow-sm */
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">✨ <span>Port</span>folio</a>
+            <ul class="nav-menu">
+                <li><a href="#" class="active">หน้าแรก</a></li>
+                <li><a href="#">ผลงาน</a></li>
+                <li><a href="#">ทักษะ</a></li>
+                <li><a href="#">ติดต่อ</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="flex-layout">
+            
+            <main class="content">
+                
+                <section class="hero">
+                    <div class="hero-avatar">👨‍💻</div>
+                    <h1>สวัสดีครับ ผม <span>จิรานุวัฒน์</span></h1>
+                    <p>นักพัฒนาซอฟต์แวร์มือใหม่ ผู้หลงใหลในการสร้างสรรค์เว็บแอปพลิเคชันที่สวยงามและใช้งานได้จริง</p>
+                    <div class="hero-tags">
+                        <span>🎯 Frontend</span>
+                        <span>⚛️ React</span>
+                        <span>🎨 UI/UX</span>
+                        <span>📱 Responsive</span>
+                    </div>
+                </section>
+
+                <h3 class="section-title">📁 ผลงานของฉัน</h3>
+                <div class="card-grid">
+                    <div class="card" style="min-height: 150px; padding: 20px;">
+                        <h4>Project 1</h4>
+                    </div>
+                    <div class="card" style="min-height: 150px; padding: 20px;">
+                        <h4>Project 2</h4>
+                    </div>
+                </div>
+
+                <h3 class="section-title">🛠️ ทักษะของฉัน</h3>
+                <div class="skills-grid">
+                    <span class="skill-item">🐍 Python</span>
+                    <span class="skill-item">🔹 C / C++</span>
+                    <span class="skill-item">♾️ Arduino</span>
+                    <span class="skill-item">📟 micro:bit / KidBright</span>
+                    <span class="skill-item">📚 HTML5 & CSS3</span>
+                    <span class="skill-item">💛 JavaScript</span>
+                    <span class="skill-item">🐘 PHP</span>
+                    <span class="skill-item">🟢 Node.js</span>
+                    <span class="skill-item">⚛️ React</span>
+                    <span class="skill-item">⚫ Next.js</span>
+                </div>
+
+            </main>
+
+            <aside class="sidebar" style="flex: 1; background: #FFFFFF; padding: 30px; border-radius: 20px; box-shadow: 0 4px 15px rgba(108, 99, 255, 0.15); border: 1px solid rgba(108, 99, 255, 0.08);">
+                
+                <div class="profile-intro" style="text-align: center; margin-bottom: 25px;">
+                    <div class="avatar-sm" style="font-size: 3rem; margin-bottom: 10px;">🧑</div>
+                    <h4>จิรานุวัฒน์ ศรีทับทิม</h4>
+                    <p style="color: #6C6A8A; font-size: 0.9rem;">ชื่อเล่น: กัปตัน · อายุ 17 ปี</p>
+                </div>
+                
+                <h3>📋 ข้อมูลส่วนตัว</h3>
+                <ul style="list-style: none; margin-bottom: 25px; padding-left: 0;">
+                    <li>🎂 เกิดเมื่อ: 3 กุมภาพันธ์ 2552</li>
+                    <li>📍 สถานะ: กำลังศึกษา</li>
+                </ul>
+
+                <h3>🎯 คติประจำใจ</h3>
+                <p style="font-style: italic; color: #6C6A8A; margin-bottom: 25px; padding: 10px; background: #F8F9FA; border-left: 4px solid #6C63FF; border-radius: 4px;">
+                    "เทคโนโลยีก้าวหน้า พัฒนาเพื่อเรียนรู้ และทำเพื่อสร้างสรรค์สิ่งใหม่ๆ"
+                </p>
+
+                <h3>📞 ช่องทางติดต่อ</h3>
+                <ul class="contact-info" style="list-style: none; margin-bottom: 15px; padding-left: 0;">
+                    อีเมลล์ : jiranuwat.sritabtim@gmail.com
+                    โทรศัพท์ : 083-262-8681
+                </ul>
+                
+                <h3>🎓 ประวัติการศึกษา</h3>
+                <ul style="list-style: none; padding-left: 0;">
+                    <li>⏳ (รออัปเดตข้อมูลสถานศึกษาของคุณเพิ่มเติม)</li>
+                </ul>
+            </aside>
+
+        </div>
+    </div>
+
+    <footer style="text-align: center; padding: 20px; background: #2D2B55; color: white; margin-top: 40px;">
+        <p>&copy; 2026 Jiranuwat. All rights reserved.</p>
+    </footer>
+</body>
+
+</html>
