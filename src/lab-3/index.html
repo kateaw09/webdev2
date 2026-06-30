@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เว็บไซต์ของเรา</title>
+    <style>
+       * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        body {
+           font-family: 'Sarabun', 'Segoe UI', Arial, sans-serif;
+           background-color: #f5f6f3;
+           line-height: 1.6;
+        }
+    /* ========== NAVBAR ========== */
+    .navbar {
+        background: #2c3e66;
+        padding: 1rem 2rem;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+    .nav-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .logo {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-decoration: none;
+   }
+
+  .nav-menu {
+    display: flex;
+    list-style: none;
+    gap: 1.5rem;
+  }
+   .nav-menu li a {
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    transition: 0.3s;
+    border-radius: 5px;
+}
+.nav-menu li a:hover,
+.nav-menu li a.active {
+    background-color: #ff9800;
+    color: #1a1a2e;
+}
+
+
+
+    </style>
+</head>
+<body>
+        <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">เว็บตัวอย่าง</a>
+            <ul class="nav-menu">
+                <li><a href="#" class="active">หน้าแรก</a></li>                        
+                <li><a href="#">เกี่ยวกับเรา</a></li>
+                <li><a href="#">ติดต่อ</a></li>
+            </ul>
+        </div>
+       </nav>
+       <!-- เนื้อหาหลัก (Main Content) -->
+           <div class="container">
+                <h1>ยินดีต้อนรับสู่เว็บไซต์ของเรา</h1>
+                <p>นี่คือตัวอย่างเว็บไซต์แบบ <strong>Multi-Page</strong> ที่ใช้ CSS Flexbox ในการจัดเลย์เอาต์</p>
+                <p>การจัดวาง 2 คอลัมน์ด้านข้างเกิดจาก <code>display: flex</code> บน <code>.flex-layout</code></p>
+                    <h2>สินค้าแนะนำ</h2>
+               
+                    <h3>สินค้าชิ้นที่ 1</h3>
+                    <p>รายละเอียดสินค้า</p>
+                   
+                    <h3>สินค้าชิ้นที่ 2</h3>
+                    <p>รายละเอียดสินค้า</p>
+                   
+                    <h3>สินค้าชิ้นที่ 3</h3>
+                    <p>รายละเอียดสินค้า</p>
+           </div>
+
+</body>
+</html>
