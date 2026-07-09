@@ -1,0 +1,48 @@
+.float-btn-home {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem; /* ปุ่มอยู่ทางขวาเหมือนเดิม */
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: .5rem;
+    border-radius: 50%;
+    background-color: rgb(0, 85, 255);
+
+    box-shadow: 0 .2rem .5rem rgba(0, 0, 0, .2);
+    transition: all .2s ease-in-out;
+}
+
+.float-btn-home svg {
+    width: 28px;
+}
+
+.float-btn-home:hover {
+    transform: translateY(-.2rem) scale(1.05);
+    box-shadow: 0 .5rem .5rem rgba(0, 0, 0, .4);
+}
+
+/* --- จัดตำแหน่ง Tooltip ให้อยู่ทางซ้ายของปุ่มและกึ่งกลางแนวแกน Y --- */
+.tooltip-text {
+    position: absolute;
+    right: 125%;          /* ดันข้อความไปทางซ้ายของปุ่ม (ห่างจากปุ่ม 125%) */
+    top: 50%;             /* ดึงลงมาที่กึ่งกลางของปุ่มในแนวตั้ง */
+    transform: translateY(-50%); /* ขยับตัวข้อความขึ้นไปครึ่งหนึ่งของตัวเองเพื่อให้บาลานซ์กึ่งกลางพอดี */
+    
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    white-space: nowrap; 
+    
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out;
+}
+
+/* เมื่อเมาส์จ่อที่ปุ่ม ให้แสดงข้อความ */
+.float-btn-home:hover .tooltip-text {
+    opacity: 1;
+}

@@ -1,92 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เว็บไซต์ของเรา</title>
     <style>
-       * {
-          margin: 0;
-          padding: 0;
-          box-sizing: border-box;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
+
         body {
-           font-family: 'Sarabun', 'Segoe UI', Arial, sans-serif;
-           background-color: #f5f6f3;
-           line-height: 1.6;
+            font-family: 'Sarabun', 'Segoe UI', Arial, sans-serif;
+            background-color: #f5f6f3;
+            line-height: 1.6;
         }
-    /* ========== NAVBAR ========== */
-    .navbar {
-        background: #2c3e66;
-        padding: 1rem 2rem;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-    }
-    .nav-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-    }
-    .logo {
-    color: white;
-    font-size: 1.5rem;
-    font-weight: bold;
-    text-decoration: none;
-   }
 
-  .nav-menu {
-    display: flex;
-    list-style: none;
-    gap: 1.5rem;
-  }
-   .nav-menu li a {
-    color: white;
-    text-decoration: none;
-    padding: 0.5rem 1rem;
-    transition: 0.3s;
-    border-radius: 5px;
-}
-.nav-menu li a:hover,
-.nav-menu li a.active {
-    background-color: #ff9800;
-    color: #1a1a2e;
-}
+        /* ========== NAVBAR ========== */
+        .navbar {
+            background: #2c3e66;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
 
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
 
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+        }
 
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 1.5rem;
+        }
+
+        .nav-menu li a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            transition: 0.3s;
+            border-radius: 5px;
+        }
+
+        .nav-menu li a:hover,
+        .nav-menu li a.active {
+            background-color: #ff9800;
+            color: #1a1a2e;
+        }
     </style>
+
+    <link rel="stylesheet" href="../../assets/css/floating-btn.css">
+
 </head>
+
 <body>
-        <nav class="navbar">
+    <nav class="navbar">
         <div class="nav-container">
             <a href="#" class="logo">เว็บตัวอย่าง</a>
             <ul class="nav-menu">
-                <li><a href="#" class="active">หน้าแรก</a></li>                        
+                <li><a href="#" class="active">หน้าแรก</a></li>
                 <li><a href="#">เกี่ยวกับเรา</a></li>
                 <li><a href="#">ติดต่อ</a></li>
             </ul>
         </div>
-       </nav>
-       <!-- เนื้อหาหลัก (Main Content) -->
-           <div class="container">
-                <h1>ยินดีต้อนรับสู่เว็บไซต์ของเรา</h1>
-                <p>นี่คือตัวอย่างเว็บไซต์แบบ <strong>Multi-Page</strong> ที่ใช้ CSS Flexbox ในการจัดเลย์เอาต์</p>
-                <p>การจัดวาง 2 คอลัมน์ด้านข้างเกิดจาก <code>display: flex</code> บน <code>.flex-layout</code></p>
-                    <h2>สินค้าแนะนำ</h2>
-               
-                    <h3>สินค้าชิ้นที่ 1</h3>
-                    <p>รายละเอียดสินค้า</p>
-                   
-                    <h3>สินค้าชิ้นที่ 2</h3>
-                    <p>รายละเอียดสินค้า</p>
-                   
-                    <h3>สินค้าชิ้นที่ 3</h3>
-                    <p>รายละเอียดสินค้า</p>
-           </div>
+    </nav>
+    <!-- เนื้อหาหลัก (Main Content) -->
+    <div class="container">
+        <h1>ยินดีต้อนรับสู่เว็บไซต์ของเรา</h1>
+        <p>นี่คือตัวอย่างเว็บไซต์แบบ <strong>Multi-Page</strong> ที่ใช้ CSS Flexbox ในการจัดเลย์เอาต์</p>
+        <p>การจัดวาง 2 คอลัมน์ด้านข้างเกิดจาก <code>display: flex</code> บน <code>.flex-layout</code></p>
+        <h2>สินค้าแนะนำ</h2>
 
+        <h3>สินค้าชิ้นที่ 1</h3>
+        <p>รายละเอียดสินค้า</p>
+
+        <h3>สินค้าชิ้นที่ 2</h3>
+        <p>รายละเอียดสินค้า</p>
+
+        <h3>สินค้าชิ้นที่ 3</h3>
+        <p>รายละเอียดสินค้า</p>
+    </div>
+
+    <a href="https://kateaw09.github.io/webdev2/" class="float-btn-home">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+            <path fill="rgb(255, 255, 255)"
+                d="M298.2 72.6C310.5 61.2 329.5 61.2 341.7 72.6L432 156.3L432 144C432 126.3 446.3 112 464 112L496 112C513.7 112 528 126.3 528 144L528 245.5L565.8 280.6C575.4 289.6 578.6 303.5 573.8 315.7C569 327.9 557.2 336 544 336L528 336L528 512C528 547.3 499.3 576 464 576L176 576C140.7 576 112 547.3 112 512L112 336L96 336C82.8 336 71 327.9 66.2 315.7C61.4 303.5 64.6 289.5 74.2 280.6L298.2 72.6zM304 384C277.5 384 256 405.5 256 432L256 528L384 528L384 432C384 405.5 362.5 384 336 384L304 384z" />
+        </svg>
+        <span class="tooltip-text">กลับหน้าหลัก</span>
+    </a>
 </body>
+
 </html>
