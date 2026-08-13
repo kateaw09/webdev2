@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CYBER NAVIGATOR AR - Space Odyssey</title>
+  
+  <!-- Google Fonts: Orbitron & Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Three.js 3D Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- MediaPipe Hands & Camera Utils -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+  <style>
+    :root {
+      --neon-cyan: #00f3ff;
+      --neon-pink: #ff0055;
+      --neon-purple: #9d00ff;
+    }
+
+    * {
+      user-select: none;
+      -webkit-user-select: none;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Orbitron', 'Prompt', sans-serif;
+      background-color: #02040a;
+      color: #ffffff;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* Sci-Fi CRT Scanlines Effect */
+    .scanlines {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: 20;
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 243, 255, 0.03) 50%
+      );
+      background-size: 100% 4px;
+    }
+
+    /* Holographic Cyber Glass Containers */
+    .cyber-glass {
+      background: rgba(4, 10, 24, 0.82);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(0, 243, 255, 0.45);
+      box-shadow: 0 0 35px rgba(0, 243, 255, 0.25), inset 0 0 15px rgba(0, 243, 255, 0.15);
+      border-radius: 20px;
+      position: relative;
+    }
+
+    .cyber-glass::before {
+      content: '';
+      position: absolute;
+      top: -2px; left: -2px; right: -2px; bottom: -2px;
+      background: linear-gradient(135deg, var(--neon-cyan), transparent 40%, var(--neon-pink));
+      border-radius: 22px;
+      z-index: -1;
+      opacity: 0.6;
+    }
+
+    /* Cyber Interactive Buttons */
+    .cyber-btn {
+      position: relative;
+      background: linear-gradient(90deg, rgba(0,243,255,0.15), rgba(157,0,255,0.25));
+      border: 1px solid var(--neon-cyan);
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .cyber-btn:hover, .cyber-btn.hand-hover {
+      background: linear-gradient(90deg, rgba(0,243,255,0.65), rgba(255,0,85,0.65));
+      border-color: #ffffff;
+      box-shadow: 0 0 25px rgba(0,243,255,0.9), 0 0 45px rgba(255,0,85,0.7);
+      transform: translateY(-2px) scale(1.02);
+      color: #ffffff;
+      text-shadow: 0 0 8px #ffffff;
+    }
+
+    .cyber-btn:active, .cyber-btn.hand-active {
+      transform: translateY(1px) scale(0.97);
+      box-shadow: 0 0 15px var(--neon-pink);
+    }
+
+    /* Target Reticle Indicator */
+    #target-reticle {
+      position: absolute;
+      width: 46px;
+      height: 46px;
+      border: 2px dashed #00f3ff;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      z-index: 99;
+      box-shadow: 0 0 20px #00f3ff, inset 0 0 10px #00f3ff;
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.08s ease-out;
+    }
+
+    #target-reticle.pinching {
+      border-color: #ff0055;
+      border-style: solid;
+      box-shadow: 0 0 30px #ff0055, inset 0 0 18px #ff0055;
+      transform: translate(-50%, -50%) scale(0.85);
+    }
+
+    #target-reticle.hovering-ui {
+      border-color: #ffe600;
+      border-style: solid;
+      box-shadow: 0 0 25px #ffe600, inset 0 0 12px #ffe600;
+    }
+
+    #target-reticle::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 8px; height: 8px;
+      background: #00f3ff;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    #target-reticle.pinching::after { background: #ff0055; }
+    #target-reticle.hovering-ui::after { background: #ffe600; }
+
+    /* Air Touch Dwell Ring */
+    .dwell-ring {
+      position: absolute;
+      top: -6px; left: -6px; right: -6px; bottom: -6px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      border-top-color: #ffe600;
+      animation: spin-ring 0.9s linear infinite;
+      display: none;
+    }
+
+    #target-reticle.dwelling .dwell-ring { display: block; }
+
+    @keyframes spin-ring {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Floating AR Camera Card (Bottom Right) */
+    #cam-container {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      width: 220px;
+      height: 165px;
+      border: 2px solid var(--neon-cyan);
+      border-radius: 16px;
+      overflow: hidden;
+      z-index: 35;
+      background: rgba(2, 6, 18, 0.92);
+      box-shadow: 0 0 30px rgba(0, 243, 255, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    #cam-container:hover {
+      border-color: var(--neon-pink);
+      box-shadow: 0 0 35px rgba(255, 0, 85, 0.7);
+    }
+
+    #cam-canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Custom Form Controls */
+    select, input[type="range"] {
+      accent-color: var(--neon-cyan);
+      background: rgba(10, 18, 40, 0.9) !important;
+      border: 1px solid var(--neon-cyan) !important;
+      color: #00f3ff !important;
+      outline: none;
+    }
+  </style>
+</head>
+<body class="w-full h-full relative select-none">
+
+  <!-- Visual CRT Scanline Grid -->
+  <div class="scanlines"></div>
+
+  <!-- Hidden Video Element for MediaPipe Tracking -->
+  <video id="video" class="hidden" playsinline muted></video>
+
+  <!-- WebGL 3D Game Canvas -->
+  <canvas id="game-canvas" class="absolute top-0 left-0 w-full h-full z-0"></canvas>
+
+  <!-- Control Target Pointer Reticle -->
+  <div id="target-reticle"><div class="dwell-ring"></div></div>
+
+  <!-- Floating AR Camera Live Card (Bottom Right) -->
+  <div id="cam-container" class="cyber-glass">
+    <canvas id="cam-canvas" width="320" height="240"></canvas>
+    
+    <div class="absolute top-1.5 left-2 text-[9px] text-[#00f3ff] font-bold tracking-wider flex items-center gap-1.5 bg-black/70 px-2 py-0.5 rounded-md border border-cyan-500/30">
+      <span id="cam-dot" class="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
+      <span id="cam-status-text">AR SENSOR LIVE</span>
+    </div>
+
+    <div id="hand-status-badge" class="absolute top-1.5 right-2 text-[9px] text-green-400 font-bold bg-black/70 px-1.5 py-0.5 rounded border border-green-500/30 hidden">
+      <i class="fa-solid fa-hand"></i> HAND DETECTED
+    </div>
+
+    <div id="pinch-indicator" class="absolute bottom-2 left-2 text-[10px] text-yellow-400 font-bold hidden bg-black/80 px-2 py-0.5 rounded-md border border-yellow-400/50">
+      <i class="fa-solid fa-bolt animate-bounce"></i> LASER ENGAGED
+    </div>
+  </div>
+
+  <!-- HUD Top Bar -->
+  <div id="hud-overlay" class="fixed top-3 left-3 right-3 md:top-4 md:left-4 md:right-4 pointer-events-none z-10 hidden flex justify-between items-start">
+    <!-- Left Pilot Stats Box -->
+    <div class="cyber-glass p-3 sm:p-4 min-w-[170px] sm:min-w-[220px] pointer-events-auto">
+      <div class="text-[10px] sm:text-xs text-cyan-400 tracking-widest font-bold mb-0.5">PILOT SCORE</div>
+      <div id="score-val" class="text-2xl sm:text-3xl font-black text-white drop-shadow-[0_0_10px_rgba(0,243,255,0.8)]">000000</div>
+      
+      <div class="mt-2 flex items-center justify-between text-[11px] sm:text-xs text-gray-300">
+        <span>SHIELD INTEGRITY</span>
+        <span id="hp-text" class="font-bold text-cyan-400">100%</span>
+      </div>
+      <div class="w-full bg-gray-950 h-2.5 sm:h-3 rounded-full overflow-hidden border border-cyan-500/50 mt-1">
+        <div id="hp-bar" class="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 h-full w-full transition-all duration-300"></div>
+      </div>
+
+      <div class="mt-1.5 flex justify-between text-[10px] text-purple-300 font-semibold">
+        <span>COMBO: <b id="combo-val" class="text-yellow-400">x1</b></span>
+        <span>LEVEL: <b id="diff-tag" class="uppercase text-cyan-300">MEDIUM</b></span>
+      </div>
+    </div>
+
+    <!-- Right Controls Panel -->
+    <div class="flex gap-2 sm:gap-3 pointer-events-auto">
+      <button id="pause-btn" class="cyber-btn px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm flex items-center gap-1.5">
+        <i class="fa-solid fa-pause"></i> <span id="txt-pause">PAUSE</span>
+      </button>
+      <button id="exit-btn" class="cyber-btn px-3 py-2 sm:px-5 sm:py-2.5 rounded-lg text-xs sm:text-sm bg-red-950/40 border-red-500 hover:bg-red-600 flex items-center gap-1.5">
+        <i class="fa-solid fa-power-off"></i> <span id="txt-exit">EXIT</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Centered Lobby Screen (Main Menu) -->
+  <div id="lobby-screen" class="fixed inset-0 z-20 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md transition-all duration-500 overflow-y-auto">
+    <!-- Ambient Cyber Glows -->
+    <div class="absolute w-[350px] h-[350px] bg-cyan-500/20 rounded-full blur-[100px] pointer-events-none animate-pulse"></div>
+    <div class="absolute w-[300px] h-[300px] bg-purple-600/20 rounded-full blur-[100px] pointer-events-none"></div>
+
+    <div class="cyber-glass p-6 sm:p-8 w-full max-w-md my-auto flex flex-col items-center gap-5 z-10 shadow-[0_0_50px_rgba(0,0,0,0.8)] border-cyan-400/50">
+      <div class="text-center">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-400/40 text-cyan-300 text-[10px] sm:text-xs tracking-widest uppercase mb-2 shadow-[0_0_15px_rgba(0,243,255,0.3)]">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+          <span>SPATIAL AR INTERFACE V3.5</span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 drop-shadow-[0_0_25px_rgba(0,243,255,0.8)]">
+          CYBER NAVIGATOR
+        </h1>
+        <p class="text-cyan-200/80 tracking-[0.25em] text-[11px] sm:text-xs mt-1 font-light">3D AR SPATIAL SPACE SIMULATOR</p>
+      </div>
+
+      <div class="w-full flex flex-col gap-3">
+        <button id="start-btn" class="cyber-btn py-3.5 sm:py-4 rounded-xl text-sm sm:text-base flex items-center justify-center gap-3">
+          <i class="fa-solid fa-rocket text-cyan-400"></i> <span id="txt-start">START MISSION</span>
+        </button>
+        <button id="settings-btn" class="cyber-btn py-3 sm:py-3.5 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-3">
+          <i class="fa-solid fa-sliders text-cyan-300"></i> <span id="txt-settings">SYSTEM SETTINGS</span>
+        </button>
+        <button id="guide-btn" class="cyber-btn py-3 sm:py-3.5 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-3">
+          <i class="fa-solid fa-book-journal-whills text-pink-400"></i> <span id="txt-guide">PILOT MANUAL</span>
+        </button>
+      </div>
+
+      <!-- Control Prompt Bar -->
+      <div class="w-full pt-3 border-t border-cyan-500/20 flex items-center justify-around text-[10px] sm:text-xs text-cyan-300/80 font-mono">
+        <div class="flex items-center gap-1.5 bg-cyan-950/40 px-2.5 py-1.5 rounded-lg border border-cyan-500/30">
+          <i class="fa-solid fa-hand-pointer text-cyan-400"></i>
+          <span>ชี้มือ / ขยับเม้าส์</span>
+        </div>
+        <div class="flex items-center gap-1.5 bg-purple-950/40 px-2.5 py-1.5 rounded-lg border border-purple-500/30">
+          <i class="fa-solid fa-hand-back-fist text-pink-400"></i>
+          <span>จีบนิ้ว / คลิกสั่งการ</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Centered Settings Screen -->
+  <div id="settings-screen" class="fixed inset-0 z-20 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md overflow-y-auto hidden">
+    <div class="cyber-glass p-6 sm:p-8 w-full max-w-lg my-auto max-h-[90vh] overflow-y-auto">
+      <h2 class="text-xl sm:text-2xl font-bold text-cyan-400 mb-5 flex items-center gap-3 border-b border-cyan-500/30 pb-3">
+        <i class="fa-solid fa-sliders"></i> <span id="txt-settings-title">SYSTEM SETTINGS</span>
+      </h2>
+
+      <div class="space-y-4 text-xs sm:text-sm">
+        <div class="flex justify-between items-center">
+          <label class="text-gray-200" id="txt-label-audio">AUDIO SYSTEM (SFX):</label>
+          <input type="range" id="audio-slider" min="0" max="100" value="80" class="w-32 sm:w-40 h-2 rounded-lg cursor-pointer">
+        </div>
+
+        <div class="flex justify-between items-center">
+          <label class="text-gray-200" id="txt-label-fps">FPS TARGET:</label>
+          <select id="fps-select" class="px-3 py-1.5 rounded-lg">
+            <option value="60">60 FPS (Ultra Smooth)</option>
+            <option value="30">30 FPS (Power Saver)</option>
+          </select>
+        </div>
+
+        <div class="flex justify-between items-center">
+          <label class="text-gray-200" id="txt-label-sens">HAND SENSITIVITY:</label>
+          <select id="sens-select" class="px-3 py-1.5 rounded-lg">
+            <option value="low">Low (High Filtering)</option>
+            <option value="medium" selected>Normal</option>
+            <option value="high">High (Ultra Responsive)</option>
+          </select>
+        </div>
+
+        <div class="flex justify-between items-center">
+          <label class="text-gray-200" id="txt-label-diff">QUESTION DIFFICULTY:</label>
+          <select id="diff-select" class="px-3 py-1.5 rounded-lg">
+            <option value="easy">Cadet (HTML)</option>
+            <option value="medium" selected>Commander (CSS / JS)</option>
+            <option value="hard">Master (Advanced JS ES6+)</option>
+          </select>
+        </div>
+
+        <div class="flex justify-between items-center">
+          <label class="text-gray-200" id="txt-label-lang">SYSTEM LANGUAGE:</label>
+          <select id="lang-select" class="px-3 py-1.5 rounded-lg">
+            <option value="th">ภาษาไทย (Thai)</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+      </div>
+
+      <button id="back-settings-btn" class="cyber-btn mt-6 sm:mt-8 w-full py-3 rounded-xl text-xs sm:text-sm">
+        <i class="fa-solid fa-arrow-left mr-2"></i> <span id="txt-back-1">BACK TO LOBBY</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Centered Guide Screen -->
+  <div id="guide-screen" class="fixed inset-0 z-20 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md overflow-y-auto hidden">
+    <div class="cyber-glass p-6 sm:p-8 w-full max-w-2xl my-auto max-h-[90vh] overflow-y-auto">
+      <h2 class="text-xl sm:text-2xl font-bold text-cyan-400 mb-4 flex items-center gap-3 border-b border-cyan-500/30 pb-3">
+        <i class="fa-solid fa-book-journal-whills"></i> <span id="txt-guide-title">PILOT MANUAL</span>
+      </h2>
+
+      <div class="space-y-4 text-xs sm:text-sm text-gray-300">
+        <div>
+          <h3 class="text-cyan-300 font-bold mb-1 text-sm sm:text-base" id="txt-story-title">STORY PROTOCOL</h3>
+          <p id="txt-story-desc">
+            ในปี ค.ศ. 2099 ระบบเครือข่าย Web Matrix ถูกจู่โจมด้วยไวรัสข้อมูล มนุษย์ต้องใช้นานอวกาศ Cyber-Wing ที่ควบคุมด้วยคลื่นประสาทมือ AR หรือเม้าส์ บินทะลุผ่านสนามอุกกาบาตดิจิทัลทั้งแนวตั้งและแนวนอน และปลดล็อกโค้ด HTML/CSS/JS เพื่อกู้คืนระบบ!
+          </p>
+        </div>
+
+        <div class="border-t border-cyan-500/20 pt-3">
+          <h3 class="text-cyan-300 font-bold mb-2 text-sm sm:text-base" id="txt-controls-title">CONTROLS (AR HAND / MOUSE)</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="bg-blue-950/40 p-3 rounded-lg border border-cyan-500/30 flex items-center gap-3">
+              <i class="fa-solid fa-hand-pointer text-2xl text-cyan-400"></i>
+              <div>
+                <b class="text-white block" id="txt-ctrl-steer">บังคับทิศทาง 2 มิติ (ซ้าย-ขวา / ขึ้น-ลง)</b>
+                <span class="text-xs text-gray-400" id="txt-ctrl-steer-desc">ขยับปลายนิ้วชี้ หรือขยับเม้าส์ไปทาง ซ้าย-ขวา และ ขึ้น-ลง เพื่อบังคับยานและเป้าหมาย</span>
+              </div>
+            </div>
+            <div class="bg-blue-950/40 p-3 rounded-lg border border-cyan-500/30 flex items-center gap-3">
+              <i class="fa-solid fa-hand-back-fist text-2xl text-pink-500"></i>
+              <div>
+                <b class="text-white block" id="txt-ctrl-shoot">ยิงเลเซอร์ทำลาย</b>
+                <span class="text-xs text-gray-400" id="txt-ctrl-shoot-desc">ทำมือจีบ (นิ้วโป้งแตะนิ้วชี้) หรือคลิกเม้าส์ค้างไว้เพื่อระดมยิงเลเซอร์</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button id="back-guide-btn" class="cyber-btn mt-6 w-full py-3 rounded-xl text-xs sm:text-sm">
+        <i class="fa-solid fa-arrow-left mr-2"></i> <span id="txt-back-2">BACK TO LOBBY</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Centered Quiz Modal Dialog -->
+  <div id="quiz-modal" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md overflow-y-auto hidden">
+    <div class="cyber-glass p-6 sm:p-8 w-full max-w-xl my-auto border-pink-500 shadow-[0_0_50px_rgba(255,0,85,0.4)] max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center gap-2 text-pink-500 font-bold tracking-widest text-xs sm:text-sm mb-2 animate-pulse">
+        <i class="fa-solid fa-triangle-exclamation"></i> MATRIX ENCRYPTION CHALLENGE
+      </div>
+      <h3 id="quiz-question" class="text-base sm:text-xl font-bold text-white mb-5 leading-relaxed">QUESTION TEXT HERE...</h3>
+
+      <div id="quiz-options-container" class="space-y-2.5">
+        <!-- Dynamic Option Buttons -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Centered Message Modal -->
+  <div id="msg-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-lg overflow-y-auto hidden">
+    <div class="cyber-glass p-6 sm:p-8 w-full max-w-md text-center my-auto max-h-[90vh] overflow-y-auto">
+      <div id="msg-icon" class="text-4xl sm:text-5xl text-cyan-400 mb-3"><i class="fa-solid fa-shield-halved"></i></div>
+      <h2 id="msg-title" class="text-xl sm:text-2xl font-black text-white mb-2">SYSTEM ALERT</h2>
+      <p id="msg-body" class="text-gray-300 text-xs sm:text-sm mb-6 leading-relaxed">Message content details...</p>
+      <button id="msg-close-btn" class="cyber-btn py-2.5 px-6 sm:py-3 sm:px-8 rounded-xl text-xs sm:text-sm">OK ACKNOWLEDGED</button>
+    </div>
+  </div>
+
+  <script>
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+        this.volume = 0.8;
+      }
+
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      }
+
+      playLaser() {
+        if (!this.enabled) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(850, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.15);
+        
+        gain.gain.setValueAtTime(this.volume * 0.35, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.15);
+      }
+
+      playExplosion() {
+        if (!this.enabled) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(160, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(25, this.ctx.currentTime + 0.35);
+
+        gain.gain.setValueAtTime(this.volume * 0.5, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.35);
+      }
+
+      playClick() {
+        if (!this.enabled) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+        gain.gain.setValueAtTime(this.volume * 0.2, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.05);
+      }
+    }
+
+    const soundSFX = new SoundEngine();
+
+    const i18n = {
+      th: {
+        start: "เริ่มภารกิจ", settings: "ตั้งค่าระบบ", guide: "คู่มือการเล่น",
+        settingsTitle: "ตั้งค่าระบบ", audio: "ระบบเสียง (SFX):", fps: "ความลื่นไหล (FPS Target):",
+        sens: "ความแม่นยำควบคุม:", diff: "ความยากคำถาม:", lang: "ภาษา:", back: "ย้อนกลับหน้าหลัก",
+        guideTitle: "คู่มือและเนื้อเรื่อง", storyTitle: "โปรโตคอลเนื้อเรื่อง",
+        storyDesc: "ในปี ค.ศ. 2099 ระบบ Web Matrix ถูกไวรัสโจมตี จงขับยานอวกาศ Cyber-Wing หลบอุกกาบาตทั้งแนวตั้งและแนวนอน และปลดล็อกโจทย์โค้ดพัฒนาเว็บเพื่อกู้คืนระบบ!",
+        ctrlTitle: "การควบคุม (AR HAND / MOUSE)", steer: "บังคับทิศทาง 2 มิติ (ซ้าย-ขวา / ขึ้น-ลง)", steerDesc: "ขยับปลายนิ้วชี้ หรือขยับเม้าส์ไปทาง ซ้าย-ขวา และ ขึ้น-ลง เพื่อบังคับยานและเป้าหมาย",
+        shoot: "ยิงเลเซอร์ทำลาย", shootDesc: "ทำมือจีบ (นิ้วโป้งแตะนิ้วชี้) หรือคลิกเม้าส์ค้างไว้เพื่อระดมยิงเลเซอร์ไปยังเป้าหมายที่เลือก",
+        pause: "หยุดพัก", exit: "ออกจากเกม"
+      },
+      en: {
+        start: "START MISSION", settings: "SYSTEM SETTINGS", guide: "PILOT MANUAL",
+        settingsTitle: "SYSTEM SETTINGS", audio: "AUDIO SYSTEM (SFX):", fps: "FRAME RATE TARGET:",
+        sens: "HAND SENSITIVITY:", diff: "QUESTION DIFFICULTY:", lang: "LANGUAGE:", back: "BACK TO LOBBY",
+        guideTitle: "PILOT MANUAL", storyTitle: "STORY PROTOCOL",
+        storyDesc: "In 2099, the Web Matrix has been infected. Pilot your Cyber-Wing spaceship in 2D space (Horizontal & Vertical), dodge digital asteroids, and solve Web Dev puzzles!",
+        ctrlTitle: "CONTROLS (AR HAND / MOUSE)", steer: "2D SPACESHIP STEERING", steerDesc: "Move index finger or mouse Left-Right and Up-Down to steer both ship and target reticle.",
+        shoot: "LASER FIRE", shootDesc: "Pinch fingers (Thumb + Index) or click mouse to trigger high-frequency laser barrage.",
+        pause: "PAUSE", exit: "ABORT"
+      }
+    };
+
+    const questionBank = {
+      easy: [
+        { q: "HTML Tag ใดใช้สำหรับสร้างหัวข้อหลักขนาดใหญ่ที่สุด?", opts: ["<heading>", "<h1>", "<h6>", "<head>"], ans: 1 },
+        { q: "การสร้างลิงก์เชื่อมโยงไปยังเว็บอื่นใช้ Tag ใด?", opts: ["<link>", "<a>", "<href>", "<url>"], ans: 1 },
+        { q: "คุณสมบัติใดใน Tag <img> ที่ใช้ระบุตำแหน่งรูปภาพ?", opts: ["href", "link", "src", "path"], ans: 2 }
+      ],
+      medium: [
+        { q: "Property ใน CSS ใดใช้จัดตำแหน่ง Element ให้อยู่ตรงกลางด้วย Flexbox?", opts: ["align-content: center", "justify-content: center", "text-align: center", "float: center"], ans: 1 },
+        { q: "คำสั่งใดใน JavaScript ที่ใช้ประกาศตัวแปรแบบ Re-assign ไม่ได้ (Block Scope)?", opts: ["var", "let", "const", "static"], ans: 2 },
+        { q: "Event listener คำสั่งใดทำหน้าที่ตรวจจับการคลิกบนปุ่ม?", opts: ["onclick", "addEventListener('click')", "onhover", "ทั้งข้อ 1 และ 2 ถูก"], ans: 3 }
+      ],
+      hard: [
+        { q: "Array Method ใดใน JavaScript ที่ใช้แปลงค่าองค์ประกอบเดิมเป็น Array ใหม่ทั้งหมด?", opts: ["forEach()", "filter()", "map()", "reduce()"], ans: 2 },
+        { q: "ข้อใดคือคุณลักษณะของ Promise state เมื่อการทำงานสำเร็จ?", opts: ["Pending", "Fulfilled", "Rejected", "Completed"], ans: 1 },
+        { q: "การดึงข้อมูลแบบ Asynchronous สมัยใหม่นิยมใช้ข้อใด?", opts: ["XMLHttpRequest", "fetch() / async await", "DOM Parser", "Worker Threads"], ans: 1 }
+      ]
+    };
+
+    const state = {
+      score: 0,
+      hp: 100,
+      combo: 1,
+      isPlaying: false,
+      isPaused: false,
+      difficulty: 'medium',
+      lang: 'th',
+      targetFPS: 60,
+      sensLevel: 'medium',
+      targetX: 0,
+      targetY: 0,
+      isPinching: false,
+      isMouseDown: false,
+      isHandActive: false,
+      usedQuestions: []
+    };
+
+    const canvas3D = document.getElementById('game-canvas');
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x02040a, 0.012);
+
+    const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 2, 9);
+    camera.lookAt(0, 0, -5);
+
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas3D, antialias: true, alpha: false });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // Lighting
+    const ambLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambLight);
+    const dirLight = new THREE.DirectionalLight(0x00f3ff, 1.4);
+    dirLight.position.set(5, 12, 7);
+    scene.add(dirLight);
+
+    // Starfield Particle System
+    const starGeo = new THREE.BufferGeometry();
+    const starCount = 1800;
+    const starPos = new Float32Array(starCount * 3);
+    for(let i=0; i<starCount*3; i+=3) {
+      starPos[i] = (Math.random() - 0.5) * 220;
+      starPos[i+1] = (Math.random() - 0.5) * 220;
+      starPos[i+2] = (Math.random() - 0.5) * 320;
+    }
+    starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+    const starMat = new THREE.PointsMaterial({ color: 0x00f3ff, size: 0.85, transparent: true, opacity: 0.8 });
+    const starField = new THREE.Points(starGeo, starMat);
+    scene.add(starField);
+
+    // Grid Floor
+    const gridHelper = new THREE.GridHelper(220, 55, 0x00f3ff, 0x9d00ff);
+    gridHelper.position.y = -5;
+    scene.add(gridHelper);
+
+    // Futuristic Spaceship Mesh Group
+    const shipGroup = new THREE.Group();
+    
+    // Fuselage
+    const noseGeo = new THREE.ConeGeometry(0.7, 3.2, 6);
+    const noseMat = new THREE.MeshPhongMaterial({ color: 0x0a1836, specular: 0x00f3ff, shininess: 100 });
+    const nose = new THREE.Mesh(noseGeo, noseMat);
+    nose.rotation.x = Math.PI / 2;
+    shipGroup.add(nose);
+
+    // Wings
+    const wingGeo = new THREE.BoxGeometry(3.4, 0.08, 1.3);
+    const wingMat = new THREE.MeshPhongMaterial({ color: 0xff0055, emissive: 0x330011 });
+    const wings = new THREE.Mesh(wingGeo, wingMat);
+    wings.position.set(0, -0.1, 0.5);
+    shipGroup.add(wings);
+
+    // Cockpit Glass
+    const glassGeo = new THREE.SphereGeometry(0.42, 16, 16);
+    const glassMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, wireframe: true });
+    const glass = new THREE.Mesh(glassGeo, glassMat);
+    glass.position.set(0, 0.35, -0.2);
+    shipGroup.add(glass);
+
+    shipGroup.position.set(0, 0, 0);
+    scene.add(shipGroup);
+
+    // 3D Target Ring in front of Ship
+    const reticleGeo = new THREE.RingGeometry(0.3, 0.4, 24);
+    const reticleMat = new THREE.MeshBasicMaterial({ color: 0x00f3ff, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
+    const reticle3D = new THREE.Mesh(reticleGeo, reticleMat);
+    reticle3D.position.set(0, 0, -8);
+    scene.add(reticle3D);
+
+    // Game Object Pools
+    let obstacles = [];
+    let lasers = [];
+
+    function spawnObstacle() {
+      if(!state.isPlaying || state.isPaused) return;
+      const geo = new THREE.IcosahedronGeometry(Math.random() * 0.55 + 0.45, 1);
+      const mat = new THREE.MeshPhongMaterial({ color: 0x9d00ff, emissive: 0x220044, flatShading: true });
+      const obs = new THREE.Mesh(geo, mat);
+      
+      const spawnX = (Math.random() - 0.5) * 14;
+      const spawnY = (Math.random() - 0.5) * 7 + 0.5;
+      obs.position.set(spawnX, spawnY, -65);
+      scene.add(obs);
+      obstacles.push(obs);
+    }
+    setInterval(spawnObstacle, 1100);
+
+    function fireLaser() {
+      soundSFX.playLaser();
+      const geo = new THREE.CylinderGeometry(0.06, 0.06, 1.4);
+      const mat = new THREE.MeshBasicMaterial({ color: 0x00f3ff });
+      const laser = new THREE.Mesh(geo, mat);
+      laser.rotation.x = Math.PI / 2;
+      laser.position.set(shipGroup.position.x, shipGroup.position.y, shipGroup.position.z - 1.2);
+      scene.add(laser);
+      lasers.push(laser);
+    }
+
+    const videoElement = document.getElementById('video');
+    const camCanvas = document.getElementById('cam-canvas');
+    const camCtx = camCanvas.getContext('2d');
+    const targetReticleUI = document.getElementById('target-reticle');
+    const handStatusBadge = document.getElementById('hand-status-badge');
+
+    // Define Hand Connections Array for custom skeleton drawing
+    const HAND_CONNECTIONS = [
+      [0,1],[1,2],[2,3],[3,4],
+      [0,5],[5,6],[6,7],[7,8],
+      [5,9],[9,10],[10,11],[11,12],
+      [9,13],[13,14],[14,15],[15,16],
+      [13,17],[17,18],[18,19],[19,20],
+      [0,17]
+    ];
+
+    let hands = null;
+    try {
+      hands = new Hands({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+      });
+
+      hands.setOptions({
+        maxNumHands: 1,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.6,
+        minTrackingConfidence: 0.6
+      });
+
+      let hoveredElement = null;
+      let dwellStartTime = 0;
+      let lastGestureClickTime = 0;
+
+      hands.onResults((results) => {
+        camCtx.clearRect(0, 0, camCanvas.width, camCanvas.height);
+        
+        // Render Mirrored Live Video Feed
+        camCtx.save();
+        camCtx.scale(-1, 1);
+        camCtx.translate(-camCanvas.width, 0);
+        camCtx.drawImage(results.image, 0, 0, camCanvas.width, camCanvas.height);
+        camCtx.restore();
+
+        if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+          state.isHandActive = true;
+          handStatusBadge.classList.remove('hidden');
+
+          const landmarks = results.multiHandLandmarks[0];
+
+          // Render Hand Skeleton Connections (Mirrored coordinate mapping)
+          camCtx.strokeStyle = '#00f3ff';
+          camCtx.lineWidth = 2.5;
+          HAND_CONNECTIONS.forEach(([i, j]) => {
+            const p1 = landmarks[i];
+            const p2 = landmarks[j];
+            camCtx.beginPath();
+            camCtx.moveTo((1 - p1.x) * camCanvas.width, p1.y * camCanvas.height);
+            camCtx.lineTo((1 - p2.x) * camCanvas.width, p2.y * camCanvas.height);
+            camCtx.stroke();
+          });
+
+          // Render Joint Landmarks
+          for (let i = 0; i < landmarks.length; i++) {
+            const x = (1 - landmarks[i].x) * camCanvas.width;
+            const y = landmarks[i].y * camCanvas.height;
+            camCtx.fillStyle = (i === 8 || i === 4) ? '#ffe600' : '#ff0055';
+            camCtx.beginPath();
+            camCtx.arc(x, y, 3.5, 0, 2 * Math.PI);
+            camCtx.fill();
+          }
+
+          // Steer Tracking (Index Finger Tip #8)
+          const indexTip = landmarks[8];
+          const rawX = ((1 - indexTip.x) - 0.5) * 16;
+          const rawY = (0.5 - indexTip.y) * 9;
+          
+          const alpha = state.sensLevel === 'high' ? 0.35 : (state.sensLevel === 'low' ? 0.08 : 0.2);
+          state.targetX += (rawX - state.targetX) * alpha;
+          state.targetY += (rawY - state.targetY) * alpha;
+
+          // Position Reticle
+          const reticleScreenX = (1 - indexTip.x) * window.innerWidth;
+          const reticleScreenY = indexTip.y * window.innerHeight;
+          targetReticleUI.style.left = `${reticleScreenX}px`;
+          targetReticleUI.style.top = `${reticleScreenY}px`;
+
+          // Pinch Gesture Check (Thumb #4 to Index #8)
+          const thumbTip = landmarks[4];
+          const dist = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y);
+          state.isPinching = dist < 0.085;
+
+          document.getElementById('pinch-indicator').classList.toggle('hidden', !state.isPinching);
+          targetReticleUI.classList.toggle('pinching', state.isPinching);
+
+          // AIR TOUCH UI INTERACTION
+          const elemUnderFinger = document.elementFromPoint(reticleScreenX, reticleScreenY);
+          const clickableBtn = elemUnderFinger ? elemUnderFinger.closest('.cyber-btn, button, select, input') : null;
+
+          document.querySelectorAll('.hand-hover').forEach(el => {
+            if (el !== clickableBtn) el.classList.remove('hand-hover');
+          });
+
+          const now = Date.now();
+
+          if (clickableBtn) {
+            clickableBtn.classList.add('hand-hover');
+            targetReticleUI.classList.add('hovering-ui');
+
+            if (hoveredElement !== clickableBtn) {
+              hoveredElement = clickableBtn;
+              dwellStartTime = now;
+            }
+
+            const isDwellActive = (now - dwellStartTime > 900);
+            targetReticleUI.classList.toggle('dwelling', (now - dwellStartTime > 250) && !state.isPinching);
+
+            if ((state.isPinching || isDwellActive) && (now - lastGestureClickTime > 600)) {
+              clickableBtn.click();
+              clickableBtn.classList.add('hand-active');
+              setTimeout(() => clickableBtn.classList.remove('hand-active'), 200);
+              
+              lastGestureClickTime = now;
+              dwellStartTime = now + 1000;
+              soundSFX.playClick();
+            }
+          } else {
+            hoveredElement = null;
+            targetReticleUI.classList.remove('hovering-ui', 'dwelling');
+          }
+        } else {
+          state.isHandActive = false;
+          handStatusBadge.classList.add('hidden');
+          document.getElementById('pinch-indicator').classList.add('hidden');
+          targetReticleUI.classList.remove('pinching', 'dwelling', 'hovering-ui');
+        }
+      });
+
+      // Start Camera Stream
+      const cameraUtils = new Camera(videoElement, {
+        onFrame: async () => {
+          if (hands) await hands.send({ image: videoElement });
+        },
+        width: 320, height: 240
+      });
+      cameraUtils.start().catch(() => {
+        document.getElementById('cam-status-text').innerText = "MOUSE MODE ACTIVE";
+        document.getElementById('cam-dot').classList.replace('bg-red-500', 'bg-yellow-400');
+      });
+    } catch(err) {
+      console.warn("Camera/MediaPipe fallback mode:", err);
+    }
+
+    window.addEventListener('mousemove', (e) => {
+      // If hand is not active, mouse controls ship & pointer reticle
+      if (!state.isHandActive) {
+        const mouseNormX = (e.clientX / window.innerWidth) - 0.5;
+        const mouseNormY = 0.5 - (e.clientY / window.innerHeight);
+
+        state.targetX = mouseNormX * 16;
+        state.targetY = mouseNormY * 9;
+
+        targetReticleUI.style.left = `${e.clientX}px`;
+        targetReticleUI.style.top = `${e.clientY}px`;
+      }
+    });
+
+    window.addEventListener('mousedown', () => {
+      state.isMouseDown = true;
+      if (!state.isHandActive && state.isPlaying && !state.isPaused) {
+        targetReticleUI.classList.add('pinching');
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      state.isMouseDown = false;
+      if (!state.isHandActive) {
+        targetReticleUI.classList.remove('pinching');
+      }
+    });
+
+    let lastShootTime = 0;
+    let quizTimer = 0;
+
+    function animate(time) {
+      requestAnimationFrame(animate);
+
+      starField.position.z += state.isPlaying ? 0.9 : 0.1;
+      if (starField.position.z > 150) starField.position.z = 0;
+      gridHelper.position.z = (time * 0.005) % 4;
+
+      if (!state.isPlaying || state.isPaused) {
+        renderer.render(scene, camera);
+        return;
+      }
+
+      // Smoothly interpolate ship to target X & Y
+      shipGroup.position.x += (state.targetX - shipGroup.position.x) * 0.12;
+      shipGroup.position.y += (state.targetY - shipGroup.position.y) * 0.12;
+
+      shipGroup.rotation.z = -(state.targetX - shipGroup.position.x) * 0.25;
+      shipGroup.rotation.x = (state.targetY - shipGroup.position.y) * 0.2;
+
+      reticle3D.position.x = shipGroup.position.x;
+      reticle3D.position.y = shipGroup.position.y;
+      reticle3D.rotation.z += 0.03;
+
+      const firing = state.isPinching || (!state.isHandActive && state.isMouseDown);
+      if (firing && time - lastShootTime > 170) {
+        fireLaser();
+        lastShootTime = time;
+      }
+
+      for (let i = lasers.length - 1; i >= 0; i--) {
+        const l = lasers[i];
+        l.position.z -= 1.25;
+        if (l.position.z < -70) {
+          scene.remove(l);
+          lasers.splice(i, 1);
+        }
+      }
+
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obs = obstacles[i];
+        obs.position.z += 0.45;
+        obs.rotation.x += 0.03;
+        obs.rotation.y += 0.03;
+
+        for (let j = lasers.length - 1; j >= 0; j--) {
+          if (obs.position.distanceTo(lasers[j].position) < 1.3) {
+            scene.remove(obs);
+            scene.remove(lasers[j]);
+            obstacles.splice(i, 1);
+            lasers.splice(j, 1);
+            soundSFX.playExplosion();
+            
+            state.score += 20 * state.combo;
+            state.combo = Math.min(5, state.combo + 1);
+            updateHUD();
+            break;
+          }
+        }
+
+        if (obs && obs.position.distanceTo(shipGroup.position) < 1.35) {
+          scene.remove(obs);
+          obstacles.splice(i, 1);
+          soundSFX.playExplosion();
+          
+          state.hp -= 20;
+          state.combo = 1;
+          updateHUD();
+
+          if (state.hp <= 0) {
+            showMsg("CRITICAL FAILURE", `GAME OVER! Final Score: ${state.score}`, () => {
+              resetToLobby();
+            });
+          }
+        }
+      }
+
+      quizTimer++;
+      if (quizTimer > 840) {
+        quizTimer = 0;
+        triggerQuestion();
+      }
+
+      renderer.render(scene, camera);
+    }
+    animate(0);
+
+    function updateHUD() {
+      document.getElementById('score-val').innerText = String(state.score).padStart(6, '0');
+      document.getElementById('hp-text').innerText = `${state.hp}%`;
+      document.getElementById('hp-bar').style.width = `${state.hp}%`;
+      document.getElementById('combo-val').innerText = `x${state.combo}`;
+    }
+
+    function triggerQuestion() {
+      state.isPaused = true;
+      soundSFX.playClick();
+      
+      const list = questionBank[state.difficulty];
+      let avail = list.filter((_, idx) => !state.usedQuestions.includes(idx));
+      if (avail.length === 0) { state.usedQuestions = []; avail = list; }
+
+      const qIndex = Math.floor(Math.random() * avail.length);
+      const qData = avail[qIndex];
+      state.usedQuestions.push(qIndex);
+
+      document.getElementById('quiz-question').innerText = qData.q;
+      const optsContainer = document.getElementById('quiz-options-container');
+      optsContainer.innerHTML = '';
+
+      qData.opts.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'cyber-btn w-full py-3 px-4 rounded-lg text-left text-xs sm:text-sm flex items-center justify-between';
+        btn.innerHTML = `<span><b>${idx + 1}.</b> ${opt}</span> <i class="fa-solid fa-chevron-right text-xs"></i>`;
+        
+        btn.onclick = () => {
+          soundSFX.playClick();
+          document.getElementById('quiz-modal').classList.add('hidden');
+          
+          if (idx === qData.ans) {
+            state.score += 100;
+            state.hp = Math.min(100, state.hp + 10);
+            showMsg("MATRIX DECRYPTED", "+100 PTS & +10% SHIELD RECOVERED!", () => {
+              state.isPaused = false;
+            });
+          } else {
+            state.hp = Math.max(0, state.hp - 15);
+            showMsg("DECRYPTION FAILED", "INCORRECT ANSWER! -15% SHIELD DAMAGED", () => {
+              state.isPaused = false;
+            });
+          }
+          updateHUD();
+        };
+        optsContainer.appendChild(btn);
+      });
+
+      document.getElementById('quiz-modal').classList.remove('hidden');
+    }
+
+    function showMsg(title, body, onClose) {
+      document.getElementById('msg-title').innerText = title;
+      document.getElementById('msg-body').innerText = body;
+      const modal = document.getElementById('msg-modal');
+      modal.classList.remove('hidden');
+
+      document.getElementById('msg-close-btn').onclick = () => {
+        modal.classList.add('hidden');
+        if (onClose) onClose();
+      };
+    }
+
+    function applyLanguage() {
+      const dict = i18n[state.lang];
+      document.getElementById('txt-start').innerText = dict.start;
+      document.getElementById('txt-settings').innerText = dict.settings;
+      document.getElementById('txt-guide').innerText = dict.guide;
+      document.getElementById('txt-settings-title').innerText = dict.settingsTitle;
+      document.getElementById('txt-label-audio').innerText = dict.audio;
+      document.getElementById('txt-label-fps').innerText = dict.fps;
+      document.getElementById('txt-label-sens').innerText = dict.sens;
+      document.getElementById('txt-label-diff').innerText = dict.diff;
+      document.getElementById('txt-label-lang').innerText = dict.lang;
+      document.getElementById('txt-back-1').innerText = dict.back;
+      document.getElementById('txt-back-2').innerText = dict.back;
+      document.getElementById('txt-guide-title').innerText = dict.guideTitle;
+      document.getElementById('txt-story-title').innerText = dict.storyTitle;
+      document.getElementById('txt-story-desc').innerText = dict.storyDesc;
+      document.getElementById('txt-controls-title').innerText = dict.ctrlTitle;
+      document.getElementById('txt-ctrl-steer').innerText = dict.steer;
+      document.getElementById('txt-ctrl-steer-desc').innerText = dict.steerDesc;
+      document.getElementById('txt-ctrl-shoot').innerText = dict.shoot;
+      document.getElementById('txt-ctrl-shoot-desc').innerText = dict.shootDesc;
+      document.getElementById('txt-pause').innerText = dict.pause;
+      document.getElementById('txt-exit').innerText = dict.exit;
+      document.getElementById('diff-tag').innerText = state.difficulty;
+    }
+
+    document.getElementById('start-btn').onclick = () => {
+      soundSFX.playClick();
+      document.getElementById('lobby-screen').classList.add('hidden');
+      document.getElementById('hud-overlay').classList.remove('hidden');
+      state.isPlaying = true;
+      state.isPaused = false;
+      state.score = 0;
+      state.hp = 100;
+      state.combo = 1;
+      updateHUD();
+    };
+
+    document.getElementById('settings-btn').onclick = () => {
+      soundSFX.playClick();
+      document.getElementById('lobby-screen').classList.add('hidden');
+      document.getElementById('settings-screen').classList.remove('hidden');
+    };
+
+    document.getElementById('guide-btn').onclick = () => {
+      soundSFX.playClick();
+      document.getElementById('lobby-screen').classList.add('hidden');
+      document.getElementById('guide-screen').classList.remove('hidden');
+    };
+
+    document.getElementById('back-settings-btn').onclick = () => {
+      soundSFX.playClick();
+      document.getElementById('settings-screen').classList.add('hidden');
+      document.getElementById('lobby-screen').classList.remove('hidden');
+    };
+
+    document.getElementById('back-guide-btn').onclick = () => {
+      soundSFX.playClick();
+      document.getElementById('guide-screen').classList.add('hidden');
+      document.getElementById('lobby-screen').classList.remove('hidden');
+    };
+
+    document.getElementById('pause-btn').onclick = () => {
+      soundSFX.playClick();
+      state.isPaused = !state.isPaused;
+      document.getElementById('txt-pause').innerText = state.isPaused ? "RESUME" : i18n[state.lang].pause;
+    };
+
+    document.getElementById('exit-btn').onclick = () => {
+      soundSFX.playClick();
+      resetToLobby();
+    };
+
+    document.getElementById('audio-slider').oninput = (e) => {
+      soundSFX.volume = e.target.value / 100;
+    };
+
+    document.getElementById('sens-select').onchange = (e) => {
+      state.sensLevel = e.target.value;
+    };
+
+    document.getElementById('diff-select').onchange = (e) => {
+      state.difficulty = e.target.value;
+      document.getElementById('diff-tag').innerText = state.difficulty;
+    };
+
+    document.getElementById('lang-select').onchange = (e) => {
+      state.lang = e.target.value;
+      applyLanguage();
+    };
+
+    function resetToLobby() {
+      state.isPlaying = false;
+      state.isPaused = false;
+      document.getElementById('hud-overlay').classList.add('hidden');
+      document.getElementById('quiz-modal').classList.add('hidden');
+      document.getElementById('lobby-screen').classList.remove('hidden');
+      
+      obstacles.forEach(o => scene.remove(o));
+      lasers.forEach(l => scene.remove(l));
+      obstacles = []; lasers = [];
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    applyLanguage();
+  </script>
+</body>
+</html>
