@@ -1,180 +1,806 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th" class="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WEBDEV-2 [Kateaw]</title>
     <link rel="shortcut icon" href="public/logos/KT_LOGO_N_BG.png" type="image/x-icon">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@200;300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-
         * {
-            font-family: Kanit, sans-serif;
+            font-family: 'Kanit', sans-serif;
+        }
+        .font-tech {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        /* Background Grid Pattern */
+        .bg-grid-pattern {
+            background-image: radial-gradient(rgba(59, 130, 246, 0.15) 1px, transparent 1px);
+            background-size: 28px 28px;
+        }
+
+        /* ---------------- Intro & Page Transition Splash Animations ---------------- */
+        #splash-screen {
+            transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: opacity;
+        }
+
+        @keyframes splashLogoIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.85) translateY(20px);
+                filter: blur(12px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+                filter: blur(0px);
+            }
+        }
+
+        @keyframes splashLogoOut {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+                filter: blur(0px);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.1);
+                filter: blur(12px);
+            }
+        }
+
+        .splash-logo-enter {
+            animation: splashLogoIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .splash-logo-exit {
+            animation: splashLogoOut 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* ---------------- Hero Entrance Animations ---------------- */
+        @keyframes heroScaleBlur {
+            0% {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+                filter: blur(12px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0px);
+            }
+        }
+
+        @keyframes shimmerText {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        @keyframes expandLine {
+            0% { transform: scaleX(0); opacity: 0; }
+            100% { transform: scaleX(1); opacity: 1; }
+        }
+
+        @keyframes floatOrb {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(25px, -25px) scale(1.1); }
+        }
+
+        .animate-hero {
+            animation: heroScaleBlur 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .text-shimmer {
+            background: linear-gradient(90deg, #ffffff 0%, #60a5fa 50%, #ffffff 100%);
+            background-size: 200% auto;
+            color: #ffffff;
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmerText 4s linear infinite;
+        }
+
+        .animate-line {
+            animation: expandLine 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .animate-orb {
+            animation: floatOrb 8s ease-in-out infinite;
+        }
+
+        /* ---------------- Card Scroll & Smooth Hover Transitions ---------------- */
+        .card-item {
+            transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), 
+                        transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+                        filter 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                        border-color 0.35s ease-out,
+                        box-shadow 0.35s ease-out;
+            will-change: opacity, transform, filter, border-color, box-shadow;
+        }
+
+        .card-reveal-bottom {
+            opacity: 0;
+            transform: translateY(50px);
+            filter: blur(8px);
+        }
+
+        .card-reveal-top {
+            opacity: 0;
+            transform: translateY(-50px);
+            filter: blur(8px);
+        }
+
+        .card-reveal-visible {
+            opacity: 1;
+            transform: translateY(0);
+            filter: blur(0px);
+        }
+
+        .card-item:hover {
+            transform: translateY(-8px) !important;
+            border-color: rgba(59, 130, 246, 0.8) !important;
+            box-shadow: 0 12px 35px rgba(59, 130, 246, 0.25) !important;
+        }
+
+        .card-item.ar-card:hover {
+            border-color: rgba(168, 85, 247, 0.8) !important;
+            box-shadow: 0 12px 35px rgba(168, 85, 247, 0.25) !important;
+        }
+
+        /* ---------------- Backdrop & Modal Card Transitions ---------------- */
+        #alert-backdrop {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                        visibility 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: opacity, visibility;
+        }
+
+        #alert-backdrop.alert-active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        #alert-card-container {
+            opacity: 0;
+            transform: scale(0.92) translateY(20px);
+            filter: blur(10px);
+            transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), 
+                        transform 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+                        filter 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: opacity, transform, filter;
+        }
+
+        #alert-backdrop.alert-active #alert-card-container {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            filter: blur(0px);
         }
     </style>
 </head>
 
-<body class="bg-linear-to-b from-blue-900 to-blue-950 text-white min-h-screen">
-    <nav class="fixed top-0 left-0 w-full h-[5rem] flex bg-gray-900 shadow-md/20 justify-center items-center z-10">
-        <div class="text-2xl text-white font-bold tracking-widest uppercase">
-            Ka<span class="text-blue-600">Teaw</span>
+<body class="bg-slate-950 text-slate-100 min-h-screen bg-grid-pattern selection:bg-blue-500 selection:text-white flex flex-col justify-between overflow-x-hidden">
+
+    <div id="splash-screen" class="fixed inset-0 z-[300] bg-black flex flex-col items-center justify-center">
+        <div id="splash-logo" class="opacity-0 flex flex-col items-center gap-3">
+            <div class="text-4xl sm:text-6xl font-bold tracking-widest uppercase">
+                Ka<span class="text-blue-500">Teaw</span>
+            </div>
+            <div class="text-xs sm:text-sm font-semibold text-blue-400 bg-blue-950/80 border border-blue-800/60 px-3 py-1 rounded-full font-tech tracking-wider uppercase">
+                WEBDEV-2 Showcase
+            </div>
         </div>
+    </div>
 
-        <div class="w-[1px] h-[60%] bg-gray-200/20 mx-4"></div>
+    <div id="alert-backdrop" class="fixed inset-0 z-[200] bg-slate-950/70 backdrop-blur-xl flex items-center justify-center p-4">
+        
+        <div id="alert-card-container" class="relative w-full max-w-md bg-slate-900/50 backdrop-blur-2xl border border-white/15 rounded-3xl shadow-[0_25px_60px_rgba(0,0,0,0.7)] overflow-hidden flex flex-col">
+            
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-blue-400/60 to-transparent pointer-events-none z-20"></div>
+            
+            <button id="alert-close-x" class="absolute top-3.5 right-3.5 z-30 text-slate-300 hover:text-white bg-slate-950/50 hover:bg-slate-900/80 border border-white/10 p-2 rounded-full backdrop-blur-md transition-all active:scale-90 shadow-md cursor-pointer">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
 
-        <div class="text-2xl font-bold text-white">WebDev-2</div>
-        <div class="w-[1px] h-[60%] bg-gray-200/20 mx-4"></div>
+            <div id="alert-banner-box" class="w-full h-36 sm:h-40 bg-gradient-to-b from-blue-600/20 via-blue-950/40 to-transparent border-b border-white/10 flex items-center justify-center text-5xl sm:text-6xl relative shrink-0 overflow-hidden">
+            </div>
 
-        <a href="https://kateaw.com"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 text-sm tracking-wide">
-            เข้าสู่เว็บไซต์หลัก
-        </a>
+            <div class="relative p-6 sm:p-8 flex-1 flex flex-col items-center text-center">
+                <button id="alert-prev-btn" class="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-slate-300 hover:text-white bg-white/5 hover:bg-blue-600/80 p-2.5 rounded-full border border-white/10 backdrop-blur-md transition-all shadow-md disabled:opacity-20 disabled:pointer-events-none active:scale-90 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <button id="alert-next-btn" class="absolute right-3 top-1/2 -translate-y-1/2 z-10 text-slate-300 hover:text-white bg-white/5 hover:bg-blue-600/80 p-2.5 rounded-full border border-white/10 backdrop-blur-md transition-all shadow-md disabled:opacity-20 disabled:pointer-events-none active:scale-90 cursor-pointer">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+
+                <h3 id="alert-title" class="text-xl sm:text-2xl font-bold text-white mb-2 tracking-tight"></h3>
+                <p id="alert-desc" class="text-xs sm:text-sm text-slate-300 font-light leading-relaxed max-w-xs"></p>
+
+                <div id="alert-dots" class="flex gap-1.5 mt-6"></div>
+            </div>
+
+            <div class="bg-slate-950/40 border-t border-white/10 backdrop-blur-md p-4 sm:p-5 flex flex-col gap-3.5">
+                <label class="flex items-center justify-center gap-2.5 text-xs text-slate-300 hover:text-white cursor-pointer select-none transition-colors">
+                    <input type="checkbox" id="dont-remind-checkbox" class="w-4 h-4 accent-blue-500 rounded border-white/20 bg-white/10 cursor-pointer">
+                    <span>ไม่ต้องเตือนฉันอีกในวันนี้</span>
+                </label>
+                
+                <button id="alert-close-btn" class="w-full py-2.5 sm:py-3 bg-gradient-to-r from-blue-500/90 via-blue-600/90 to-indigo-600/90 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-sm rounded-2xl border border-white/20 shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all cursor-pointer">
+                    ตกลง / ปิด
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <nav id="hero-nav" class="hero-element opacity-0 sticky top-0 w-full z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800/80 shadow-lg px-4 sm:px-8 py-3.5">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="#" class="text-2xl font-bold tracking-widest uppercase text-white flex items-center gap-1">
+                    Ka<span class="text-blue-500">Teaw</span>
+                </a>
+                <span class="h-4 w-[1px] bg-slate-700"></span>
+                <span class="text-xs sm:text-sm font-semibold text-blue-400 bg-blue-950/60 border border-blue-800/50 px-2.5 py-0.5 rounded-full font-tech">
+                    WEBDEV-2
+                </span>
+            </div>
+
+            <a href="https://kateaw.com" target="_blank"
+               class="group relative inline-flex items-center justify-center px-4 py-2 text-xs sm:text-sm font-medium text-white transition-all duration-300 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-600/25 hover:shadow-blue-500/40 active:scale-95">
+                <span>เข้าสู่เว็บไซต์หลัก</span>
+                <svg class="w-4 h-4 ml-1.5 transition-transform duration-200 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+            </a>
+        </div>
     </nav>
 
-    <header class="mt-[5rem] h-[calc(100vh-20vh)] flex justify-center items-center">
-        <div class="text-shadow-lg/20">
-            <h1 class="text-6xl font-bold">วิชาพัฒนาเว็บไซต์</h1>
-            <div class="flex items-center gap-4 w-full">
-                <h1 class="text-md font-thin whitespace-nowrap">ผลงานของ : นายจิรานุวัฒน์ ศรีทับทิม</h1>
-                <div class="flex-grow h-[1px] bg-linear-to-r from-white to-transparent"></div>
+    <header class="relative min-h-[80vh] px-4 overflow-hidden flex flex-col items-center justify-center text-center">
+        <div class="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none animate-orb"></div>
+        <div class="absolute top-1/2 left-1/3 w-64 h-64 bg-indigo-500/15 rounded-full blur-3xl pointer-events-none animate-orb" style="animation-delay: -4s;"></div>
+
+        <div class="relative z-10 max-w-4xl space-y-6 my-auto">
+            <div id="hero-badge" class="hero-element opacity-0">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-slate-900/90 border border-slate-700/80 text-xs sm:text-sm text-slate-300 font-tech shadow-xl backdrop-blur-md">
+                    WEBDEV-2 Showcase
+                </div>
             </div>
+            
+            <h1 id="hero-title" class="hero-element opacity-0 text-5xl sm:text-7xl md:text-8xl font-black tracking-tight text-shimmer drop-shadow-2xl">
+                วิชาพัฒนาเว็บไซต์
+            </h1>
+            
+            <p id="hero-subtitle" class="hero-element opacity-0 text-lg sm:text-2xl text-slate-300 font-light max-w-2xl mx-auto">
+                ผลงานและชิ้นงานปฏิบัติการของ <span class="text-blue-400 font-semibold">นายจิรานุวัฒน์ ศรีทับทิม</span>
+            </p>
         </div>
     </header>
 
-    <header class="mt-[5rem] h-[calc(100vh-20vh)] flex md:hidden justify-center items-center">
-        <div class="text-shadow-lg/20">
-            <h1 class="text-4xl font-bold">วิชาพัฒนาเว็บไซต์</h1>
-            <h1 class="text-xl font-thin whitespace-nowrap">ผลงานของ : นายจิรานุวัฒน์ ศรีทับทิม</h1>
+    <div id="hero-line" class="hero-element opacity-0 max-w-7xl mx-auto w-[90%] flex items-center gap-4 my-8">
+        <div class="h-[1px] flex-grow bg-gradient-to-r from-transparent via-blue-700 to-transparent"></div>
+        <div class="px-4 py-1.5 rounded-full bg-slate-900/80 border border-slate-800 backdrop-blur-md shadow-lg flex items-center gap-2">
+            <span class="text-xs font-bold uppercase tracking-widest text-blue-400 font-tech">WEB DEVELOPMENT</span>
         </div>
-    </header>
+        <div class="h-[1px] flex-grow bg-gradient-to-r from-transparent via-blue-700 to-transparent"></div>
+    </div>
 
-    <main class="flex flex-col gap-6">
+    <main class="max-w-7xl mx-auto w-[90%] pb-12 space-y-12">
 
-        <!-- <main class="w-[80vw] mx-auto bg-gray-100/10 p-6 rounded-4xl shadow-xl mb-6">
-            <div class="flex justify-between items-center">
-                <div class="text-shadow-lg/20">
-                    <h1 class="text-2xl font-bold">สัปดาห์ที่ 1 - Demo</h1>
-                    <h1 class="text-md font-thin whitespace-nowrap">Week 1 Assignment - Demo</h1>
+        <article class="card-item card-reveal card-reveal-bottom group bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="p-4 sm:p-6 flex flex-row justify-between items-center gap-4 border-b border-slate-800/80 transition-colors duration-300 group-hover:bg-slate-800/30">
+                <div class="min-w-0 flex-1">
+                    <span class="text-xs font-semibold font-tech text-blue-400 uppercase tracking-wider group-hover:text-blue-300 transition-colors">WEEK 01</span>
+                    <h2 class="text-lg sm:text-2xl font-bold text-white mt-0.5 group-hover:text-blue-100 transition-colors truncate">สัปดาห์ที่ 1 - Demo</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 font-light mt-1">การทดสอบโครงสร้างพื้นฐานเว็บไซต์และการแสดงผลเบื้องต้น</p>
+                    
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-amber-300 bg-amber-950/40 border border-amber-800/40 rounded-lg backdrop-blur-md shadow-sm">HTML5</span>
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-blue-300 bg-blue-950/40 border border-blue-800/40 rounded-lg backdrop-blur-md shadow-sm">CSS3</span>
+                    </div>
                 </div>
-                <a target="_bank" href="src/demo/index.html"
-                    class="bg-blue-500 p-4 rounded-2xl shadow-md duration-300 hover:-translate-y-1">เข้าดูงาน</a>
+                <a href="src/demo/index.html" 
+                   class="open-full-btn shrink-0 inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white text-xs sm:text-sm font-medium rounded-xl border border-slate-700 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all duration-200 whitespace-nowrap cursor-pointer">
+                    <span>เปิดดูเต็มหน้า</span>
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                </a>
             </div>
+            <div class="bg-slate-950/80 px-4 py-2 border-b border-slate-800/50 flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="text-[11px] font-mono text-slate-500 ml-2 truncate group-hover:text-slate-400 transition-colors">src/demo/index.html</span>
+            </div>
+            <div class="p-2 bg-slate-950/40 relative overflow-hidden">
+                <iframe sandbox src="src/demo/index.html" class="w-full h-[400px] sm:h-[550px] rounded-b-xl border-0 bg-white pointer-events-none select-none transition-transform duration-500 group-hover:scale-[1.005]" loading="lazy"></iframe>
+            </div>
+        </article>
 
-            <div class="flex-grow my-6 h-[1px] bg-linear-to-r from-transparent via-white/20 to-transparent"></div>
-
-            <iframe src="src/demo/index.html" frameborder="0"
-                class="bg-white w-full h-80 md:h-[60vh] rounded-2xl p-2"></iframe>
-        </main> -->
-
-        <div class="relative flex py-5 items-center w-[80vw] mx-auto">
-            <div class="flex-grow h-[1px] bg-linear-to-l from-white to-transparent"></div>
-            <span class="flex-shrink mx-4 text-white">learning</span>
-            <div class="flex-grow h-[1px] bg-linear-to-r from-white to-transparent"></div>
-        </div>
-
-        <main class="w-[80vw] mx-auto bg-gray-100/10 p-6 rounded-4xl shadow-xl mb-6">
-            <div class="flex justify-between items-center">
-                <div class="text-shadow-lg/20">
-                    <h1 class="text-2xl font-bold">สัปดาห์ที่ 1 - Demo</h1>
-                    <h1 class="text-md font-thin whitespace-nowrap">Week 1 Assignment - Demo</h1>
+        <article class="card-item card-reveal card-reveal-bottom group bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="p-4 sm:p-6 flex flex-row justify-between items-center gap-4 border-b border-slate-800/80 transition-colors duration-300 group-hover:bg-slate-800/30">
+                <div class="min-w-0 flex-1">
+                    <span class="text-xs font-semibold font-tech text-blue-400 uppercase tracking-wider group-hover:text-blue-300 transition-colors">WEEK 02</span>
+                    <h2 class="text-lg sm:text-2xl font-bold text-white mt-0.5 group-hover:text-blue-100 transition-colors truncate">สัปดาห์ที่ 2 - Lab 1</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 font-light mt-1">เรียนรู้การจัดองค์ประกอบ Layout และ Styling พื้นฐานด้วย CSS</p>
+                    
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-amber-300 bg-amber-950/40 border border-amber-800/40 rounded-lg backdrop-blur-md shadow-sm">HTML5</span>
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-blue-300 bg-blue-950/40 border border-blue-800/40 rounded-lg backdrop-blur-md shadow-sm">CSS3</span>
+                    </div>
                 </div>
-                <a target="_bank" href="src/demo/index.html"
-                    class="bg-blue-500 p-4 rounded-2xl shadow-md duration-300 hover:-translate-y-1">เข้าดูงาน</a>
+                <a href="src/lab-1/index.html" 
+                   class="open-full-btn shrink-0 inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white text-xs sm:text-sm font-medium rounded-xl border border-slate-700 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all duration-200 whitespace-nowrap cursor-pointer">
+                    <span>เปิดดูเต็มหน้า</span>
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                </a>
             </div>
+            <div class="bg-slate-950/80 px-4 py-2 border-b border-slate-800/50 flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="text-[11px] font-mono text-slate-500 ml-2 truncate group-hover:text-slate-400 transition-colors">src/lab-1/index.html</span>
+            </div>
+            <div class="p-2 bg-slate-950/40 relative overflow-hidden">
+                <iframe sandbox src="src/lab-1/index.html" class="w-full h-[400px] sm:h-[550px] rounded-b-xl border-0 bg-white pointer-events-none select-none transition-transform duration-500 group-hover:scale-[1.005]" loading="lazy"></iframe>
+            </div>
+        </article>
 
-            <div class="flex-grow my-6 h-[1px] bg-linear-to-r from-transparent via-white/20 to-transparent"></div>
-
-            <iframe src="src/demo/index.html" frameborder="0"
-                class="bg-white w-full h-80 md:h-[60vh] rounded-2xl p-2 overflow-hidden"></iframe>
-        </main>
-
-        <main class="w-[80vw] mx-auto bg-gray-100/10 p-6 rounded-4xl shadow-xl mb-6">
-            <div class="flex justify-between items-center">
-                <div class="text-shadow-lg/20">
-                    <h1 class="text-2xl font-bold">สัปดาห์ที่ 2 - lab 1</h1>
-                    <h1 class="text-md font-thin whitespace-nowrap">Week 2 Assignment - lab 1</h1>
+        <article class="card-item card-reveal card-reveal-bottom group bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="p-4 sm:p-6 flex flex-row justify-between items-center gap-4 border-b border-slate-800/80 transition-colors duration-300 group-hover:bg-slate-800/30">
+                <div class="min-w-0 flex-1">
+                    <span class="text-xs font-semibold font-tech text-blue-400 uppercase tracking-wider group-hover:text-blue-300 transition-colors">WEEK 03</span>
+                    <h2 class="text-lg sm:text-2xl font-bold text-white mt-0.5 group-hover:text-blue-100 transition-colors truncate">สัปดาห์ที่ 3 - Lab 2 (Navigation & Flexbox)</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 font-light mt-1">การสร้างแถบนำทาง (Navbar) และการจัดเลย์เอาต์ยืดหยุ่นด้วย Flexbox</p>
+                    
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-amber-300 bg-amber-950/40 border border-amber-800/40 rounded-lg backdrop-blur-md shadow-sm">HTML5</span>
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-blue-300 bg-blue-950/40 border border-blue-800/40 rounded-lg backdrop-blur-md shadow-sm">CSS FLEXBOX</span>
+                    </div>
                 </div>
-                <a target="_bank" href="src/lab-1/index.html"
-                    class="bg-blue-500 p-4 rounded-2xl shadow-md duration-300 hover:-translate-y-1">เข้าดูงาน</a>
+                <a href="src/lab-2/index.html" 
+                   class="open-full-btn shrink-0 inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white text-xs sm:text-sm font-medium rounded-xl border border-slate-700 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all duration-200 whitespace-nowrap cursor-pointer">
+                    <span>เปิดดูเต็มหน้า</span>
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                </a>
             </div>
+            <div class="bg-slate-950/80 px-4 py-2 border-b border-slate-800/50 flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="text-[11px] font-mono text-slate-500 ml-2 truncate group-hover:text-slate-400 transition-colors">src/lab-2/index.html</span>
+            </div>
+            <div class="p-2 bg-slate-950/40 relative overflow-hidden">
+                <iframe sandbox src="src/lab-2/index.html" class="w-full h-[400px] sm:h-[550px] rounded-b-xl border-0 bg-white pointer-events-none select-none transition-transform duration-500 group-hover:scale-[1.005]" loading="lazy"></iframe>
+            </div>
+        </article>
 
-            <div class="flex-grow my-6 h-[1px] bg-linear-to-r from-transparent via-white/20 to-transparent"></div>
-
-            <iframe src="src/lab-1/index.html" frameborder="0"
-                class="bg-white w-full h-80 md:h-[60vh] rounded-2xl p-2 overflow-hidden"></iframe>
-        </main>
-
-        <main class="w-[80vw] mx-auto bg-gray-100/10 p-6 rounded-4xl shadow-xl mb-6">
-            <div class="flex justify-between items-center">
-                <div class="text-shadow-lg/20">
-                    <h1 class="text-2xl font-bold">สัปดาห์ที่ 3 - lab 3 (เรียนรู้แถบนำทางและ flex-box)</h1>
-                    <h1 class="text-md font-thin whitespace-nowrap">Week 3 Assignment - lab-2</h1>
+        <article class="card-item card-reveal card-reveal-bottom group bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="p-4 sm:p-6 flex flex-row justify-between items-center gap-4 border-b border-slate-800/80 transition-colors duration-300 group-hover:bg-slate-800/30">
+                <div class="min-w-0 flex-1">
+                    <span class="text-xs font-semibold font-tech text-blue-400 uppercase tracking-wider group-hover:text-blue-300 transition-colors">WEEK 04</span>
+                    <h2 class="text-lg sm:text-2xl font-bold text-white mt-0.5 group-hover:text-blue-100 transition-colors truncate">สัปดาห์ที่ 4 - Lab 3</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 font-light mt-1">การสร้าง UI คอมโพเนนต์ขั้นสูงและการจัดวางตำแหน่งด้วย Tailwind CSS</p>
+                    
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-amber-300 bg-amber-950/40 border border-amber-800/40 rounded-lg backdrop-blur-md shadow-sm">HTML5</span>
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-cyan-300 bg-cyan-950/40 border border-cyan-800/40 rounded-lg backdrop-blur-md shadow-sm">TAILWIND CSS</span>
+                    </div>
                 </div>
-                <a target="_bank" href="src/lab-2/index.html"
-                    class="bg-blue-500 p-4 rounded-2xl shadow-md duration-300 hover:-translate-y-1">เข้าดูงาน</a>
+                <a href="src/lab-3/index.html" 
+                   class="open-full-btn shrink-0 inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white text-xs sm:text-sm font-medium rounded-xl border border-slate-700 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all duration-200 whitespace-nowrap cursor-pointer">
+                    <span>เปิดดูเต็มหน้า</span>
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                </a>
             </div>
+            <div class="bg-slate-950/80 px-4 py-2 border-b border-slate-800/50 flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="text-[11px] font-mono text-slate-500 ml-2 truncate group-hover:text-slate-400 transition-colors">src/lab-3/index.html</span>
+            </div>
+            <div class="p-2 bg-slate-950/40 relative overflow-hidden">
+                <iframe sandbox src="src/lab-3/index.html" class="w-full h-[400px] sm:h-[550px] rounded-b-xl border-0 bg-white pointer-events-none select-none transition-transform duration-500 group-hover:scale-[1.005]" loading="lazy"></iframe>
+            </div>
+        </article>
 
-            <div class="flex-grow my-6 h-[1px] bg-linear-to-r from-transparent via-white/20 to-transparent"></div>
-
-            <iframe src="src/lab-2/index.html" frameborder="0"
-                class="bg-white w-full h-80 md:h-[60vh] rounded-2xl p-2 overflow-hidden"></iframe>
-        </main>
-
-        <main class="w-[80vw] mx-auto bg-gray-100/10 p-6 rounded-4xl shadow-xl mb-6">
-            <div class="flex justify-between items-center">
-                <div class="text-shadow-lg/20">
-                    <h1 class="text-2xl font-bold">สัปดาห์ที่ 4 - lab 3 (lab-3)</h1>
-                    <h1 class="text-md font-thin whitespace-nowrap">Week 3 Assignment - lab-2</h1>
+        <article class="card-item card-reveal card-reveal-bottom group bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="p-4 sm:p-6 flex flex-row justify-between items-center gap-4 border-b border-slate-800/80 transition-colors duration-300 group-hover:bg-slate-800/30">
+                <div class="min-w-0 flex-1">
+                    <span class="text-xs font-semibold font-tech text-blue-400 uppercase tracking-wider group-hover:text-blue-300 transition-colors">WEEK 05</span>
+                    <h2 class="text-lg sm:text-2xl font-bold text-white mt-0.5 group-hover:text-blue-100 transition-colors truncate">สัปดาห์ที่ 5 - Portfolio (Lab 4)</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 font-light mt-1">การออกแบบและพัฒนาเว็บไซต์แฟ้มสะสมผลงานเวอร์ชันเริ่มต้น</p>
+                    
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-amber-300 bg-amber-950/40 border border-amber-800/40 rounded-lg backdrop-blur-md shadow-sm">HTML5</span>
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-cyan-300 bg-cyan-950/40 border border-cyan-800/40 rounded-lg backdrop-blur-md shadow-sm">TAILWIND CSS</span>
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-yellow-300 bg-yellow-950/40 border border-yellow-800/40 rounded-lg backdrop-blur-md shadow-sm">JAVASCRIPT</span>
+                    </div>
                 </div>
-                <a target="_bank" href="src/lab-3/index.html"
-                    class="bg-blue-500 p-4 rounded-2xl shadow-md duration-300 hover:-translate-y-1">เข้าดูงาน</a>
+                <a href="src/lab-4/index.html" 
+                   class="open-full-btn shrink-0 inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white text-xs sm:text-sm font-medium rounded-xl border border-slate-700 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all duration-200 whitespace-nowrap cursor-pointer">
+                    <span>เปิดดูเต็มหน้า</span>
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                </a>
             </div>
+            <div class="bg-slate-950/80 px-4 py-2 border-b border-slate-800/50 flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="text-[11px] font-mono text-slate-500 ml-2 truncate group-hover:text-slate-400 transition-colors">src/lab-4/index.html</span>
+            </div>
+            <div class="p-2 bg-slate-950/40 relative overflow-hidden">
+                <iframe sandbox src="src/lab-4/index.html" class="w-full h-[400px] sm:h-[550px] rounded-b-xl border-0 bg-white pointer-events-none select-none transition-transform duration-500 group-hover:scale-[1.005]" loading="lazy"></iframe>
+            </div>
+        </article>
 
-            <div class="flex-grow my-6 h-[1px] bg-linear-to-r from-transparent via-white/20 to-transparent"></div>
-
-            <iframe src="src/lab-3/index.html" frameborder="0"
-                class="bg-white w-full h-80 md:h-[60vh] rounded-2xl p-2 overflow-hidden"></iframe>
-        </main>
-
-        <main class="w-[80vw] mx-auto bg-gray-100/10 p-6 rounded-4xl shadow-xl mb-6">
-            <div class="flex justify-between items-center">
-                <div class="text-shadow-lg/20">
-                    <h1 class="text-2xl font-bold">สัปดาห์ที่ 5 - Portfolio (lab-4)</h1>
-                    <h1 class="text-md font-thin whitespace-nowrap">Week 4 Portfolio</h1>
+        <article class="card-item card-reveal card-reveal-bottom group bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="p-4 sm:p-6 flex flex-row justify-between items-center gap-4 border-b border-slate-800/80 transition-colors duration-300 group-hover:bg-slate-800/30">
+                <div class="min-w-0 flex-1">
+                    <span class="text-xs font-semibold font-tech text-blue-400 uppercase tracking-wider group-hover:text-blue-300 transition-colors">WEEK 06</span>
+                    <h2 class="text-lg sm:text-2xl font-bold text-white mt-0.5 group-hover:text-blue-100 transition-colors truncate">สัปดาห์ที่ 6 - Portfolio Final (Lab 5)</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 font-light mt-1">ผลงานแฟ้มสะสมผลงานฉบับสมบูรณ์ พร้อมปรับแต่ง UI/UX ให้สมบูรณ์แบบ</p>
+                    
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-amber-300 bg-amber-950/40 border border-amber-800/40 rounded-lg backdrop-blur-md shadow-sm">HTML5</span>
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-cyan-300 bg-cyan-950/40 border border-cyan-800/40 rounded-lg backdrop-blur-md shadow-sm">TAILWIND CSS</span>
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-yellow-300 bg-yellow-950/40 border border-yellow-800/40 rounded-lg backdrop-blur-md shadow-sm">JAVASCRIPT</span>
+                    </div>
                 </div>
-                <a target="_bank" href="src/lab-4/index.html"
-                    class="bg-blue-500 p-4 rounded-2xl shadow-md duration-300 hover:-translate-y-1">เข้าดูงาน</a>
+                <a href="src/Portfolio/index.html" 
+                   class="open-full-btn shrink-0 inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-slate-800 hover:bg-blue-600 text-slate-200 hover:text-white text-xs sm:text-sm font-medium rounded-xl border border-slate-700 hover:border-blue-400 hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all duration-200 whitespace-nowrap cursor-pointer">
+                    <span>เปิดดูเต็มหน้า</span>
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                </a>
             </div>
-
-            <div class="flex-grow my-6 h-[1px] bg-linear-to-r from-transparent via-white/20 to-transparent"></div>
-
-            <iframe src="src/lab-4/index.html" frameborder="0"
-                class="bg-white w-full h-80 md:h-[60vh] rounded-2xl p-2 overflow-hidden"></iframe>
-        </main>
-
-        <main class="w-[80vw] mx-auto bg-gray-100/10 p-6 rounded-4xl shadow-xl mb-6">
-            <div class="flex justify-between items-center">
-                <div class="text-shadow-lg/20">
-                    <h1 class="text-2xl font-bold">สัปดาห์ที่ 6 - Portfolio Final (lab-5)</h1>
-                    <h1 class="text-md font-thin whitespace-nowrap">Week 4 Portfolio Final</h1>
-                </div>
-                <a target="_bank" href="src/Portfolio/index.html"
-                    class="bg-blue-500 p-4 rounded-2xl shadow-md duration-300 hover:-translate-y-1">เข้าดูงาน</a>
+            <div class="bg-slate-950/80 px-4 py-2 border-b border-slate-800/50 flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="text-[11px] font-mono text-slate-500 ml-2 truncate group-hover:text-slate-400 transition-colors">src/Portfolio/index.html</span>
             </div>
+            <div class="p-2 bg-slate-950/40 relative overflow-hidden">
+                <iframe sandbox src="src/Portfolio/index.html" class="w-full h-[400px] sm:h-[550px] rounded-b-xl border-0 bg-white pointer-events-none select-none transition-transform duration-500 group-hover:scale-[1.005]" loading="lazy"></iframe>
+            </div>
+        </article>
 
-            <div class="flex-grow my-6 h-[1px] bg-linear-to-r from-transparent via-white/20 to-transparent"></div>
-
-            <iframe src="src/Portfolio/index.html" frameborder="0"
-                class="bg-white w-full h-80 md:h-[60vh] rounded-2xl p-2 overflow-hidden"></iframe>
-        </main>
     </main>
 
-    <footer class="text-center font-thin text-white/50 my-10">
-        &copy;2026 Kateaw. All right reversed.
-    </footer>
-</body>
+    <div class="max-w-7xl mx-auto w-[90%] flex items-center gap-4 my-12">
+        <div class="h-[1px] flex-grow bg-gradient-to-r from-transparent via-purple-700 to-transparent"></div>
+        <div class="px-4 py-1.5 rounded-full bg-slate-900/80 border border-slate-800 backdrop-blur-md shadow-lg flex items-center gap-2">
+            <span class="text-xs font-bold uppercase tracking-widest text-purple-400 font-tech">AR - AUGMENTED REALITY</span>
+        </div>
+        <div class="h-[1px] flex-grow bg-gradient-to-r from-transparent via-purple-700 to-transparent"></div>
+    </div>
 
+    <section class="max-w-7xl mx-auto w-[90%] pb-16 space-y-12">
+
+        <article class="card-item ar-card card-reveal card-reveal-bottom group bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="p-4 sm:p-6 flex flex-row justify-between items-center gap-4 border-b border-slate-800/80 transition-colors duration-300 group-hover:bg-slate-800/30">
+                <div class="min-w-0 flex-1">
+                    <span class="text-xs font-semibold font-tech text-purple-400 uppercase tracking-wider group-hover:text-purple-300 transition-colors">AUGMENTED REALITY 01</span>
+                    <h2 class="text-lg sm:text-2xl font-bold text-white mt-0.5 group-hover:text-purple-100 transition-colors truncate">AR-101 สร้างเกมที่ควบคุมด้วยกล้อง</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 font-light mt-1">เกมที่ควบคุมด้วยกล้องและใช้เทคโนโลยี Augmented Reality</p>
+                    
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-purple-300 bg-purple-950/40 border border-purple-800/40 rounded-lg backdrop-blur-md shadow-sm">AR.JS</span>
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-indigo-300 bg-indigo-950/40 border border-indigo-800/40 rounded-lg backdrop-blur-md shadow-sm">A-FRAME</span>
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-emerald-300 bg-emerald-950/40 border border-emerald-800/40 rounded-lg backdrop-blur-md shadow-sm">WEBGL</span>
+                    </div>
+                </div>
+                <a href="src/AR/index.html" 
+                   class="open-full-btn shrink-0 inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-slate-800 hover:bg-purple-600 text-slate-200 hover:text-white text-xs sm:text-sm font-medium rounded-xl border border-slate-700 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/30 hover:scale-105 active:scale-95 transition-all duration-200 whitespace-nowrap cursor-pointer">
+                    <span>เปิดดูเต็มหน้า</span>
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                </a>
+            </div>
+            <div class="bg-slate-950/80 px-4 py-2 border-b border-slate-800/50 flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="text-[11px] font-mono text-slate-500 ml-2 truncate group-hover:text-slate-400 transition-colors">src/AR/index.html</span>
+            </div>
+            <div class="p-2 bg-slate-950/40 relative overflow-hidden">
+                <iframe sandbox src="src/AR/index.html" class="w-full h-[400px] sm:h-[550px] rounded-b-xl border-0 bg-white pointer-events-none select-none transition-transform duration-500 group-hover:scale-[1.005]" loading="lazy"></iframe>
+            </div>
+        </article>
+
+        <article class="card-item ar-card card-reveal card-reveal-bottom group bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-2xl overflow-hidden">
+            <div class="p-4 sm:p-6 flex flex-row justify-between items-center gap-4 border-b border-slate-800/80 transition-colors duration-300 group-hover:bg-slate-800/30">
+                <div class="min-w-0 flex-1">
+                    <span class="text-xs font-semibold font-tech text-purple-400 uppercase tracking-wider group-hover:text-purple-300 transition-colors">AUGMENTED REALITY 02</span>
+                    <h2 class="text-lg sm:text-2xl font-bold text-white mt-0.5 group-hover:text-purple-100 transition-colors truncate">เกมตบยุงด้วยเทคโนโลยีกล้อง AR</h2>
+                    <p class="text-xs sm:text-sm text-slate-400 font-light mt-1">เทคโนโลยีผสานวัตถุ 3 มิติเสมือนจริงเข้ากับโลกจริงผ่านเว็บเบราว์เซอร์ในรูปแบบเกมที่ตอบสนองกับผู้เล่นเป็นแบบเกม</p>
+                    
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-purple-300 bg-purple-950/40 border border-purple-800/40 rounded-lg backdrop-blur-md shadow-sm">AR.JS</span>
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-indigo-300 bg-indigo-950/40 border border-indigo-800/40 rounded-lg backdrop-blur-md shadow-sm">A-FRAME</span>
+                        <span class="px-3 py-1 text-xs font-tech font-medium text-emerald-300 bg-emerald-950/40 border border-emerald-800/40 rounded-lg backdrop-blur-md shadow-sm">WEBGL</span>
+                    </div>
+                </div>
+                <a href="src/AR-2/index.html" 
+                   class="open-full-btn shrink-0 inline-flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 bg-slate-800 hover:bg-purple-600 text-slate-200 hover:text-white text-xs sm:text-sm font-medium rounded-xl border border-slate-700 hover:border-purple-400 hover:shadow-lg hover:shadow-purple-500/30 hover:scale-105 active:scale-95 transition-all duration-200 whitespace-nowrap cursor-pointer">
+                    <span>เปิดดูเต็มหน้า</span>
+                    <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                </a>
+            </div>
+            <div class="bg-slate-950/80 px-4 py-2 border-b border-slate-800/50 flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-rose-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="w-3 h-3 rounded-full bg-amber-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="w-3 h-3 rounded-full bg-emerald-500/80 inline-block transition-transform group-hover:scale-110"></span>
+                <span class="text-[11px] font-mono text-slate-500 ml-2 truncate group-hover:text-slate-400 transition-colors">src/AR-2/index.html</span>
+            </div>
+            <div class="p-2 bg-slate-950/40 relative overflow-hidden">
+                <iframe sandbox src="src/AR-2/index.html" class="w-full h-[400px] sm:h-[550px] rounded-b-xl border-0 bg-white pointer-events-none select-none transition-transform duration-500 group-hover:scale-[1.005]" loading="lazy"></iframe>
+            </div>
+        </article>
+
+    </section>
+
+    <footer class="mt-16 py-8 border-t border-slate-800/80 bg-slate-900/50 backdrop-blur-md text-center text-xs text-slate-400 font-tech">
+        <p>&copy; 2026 <a href="https://kateaw.com" target="_blank" class="text-blue-400 hover:text-blue-300 font-bold transition-colors underline decoration-blue-500/30 underline-offset-4">Kateaw</a>. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // JSON Data สำหรับการ์ดแจ้งเตือน
+        const alertData = [
+            {
+                type: "emoji",
+                banner: "🚀",
+                title: "ยินดีต้อนรับสู่เว็บ Portfolio!",
+                description: "รวบรวมชิ้นงานและระบบปฏิบัติการประจำวิชา Web Development และการทดลองใช้เทคโนโลยี AR บนเว็บเบราว์เซอร์"
+            },
+            {
+                type: "emoji",
+                banner: "💡",
+                title: "คำแนะนำการรับชม",
+                description: "คุณสามารถคลิกปุ่ม 'เปิดดูเต็มหน้า' ทางฝั่งขวาของการ์ดแต่ละใบเพื่อรับชมผลงานฉบับเต็มในแท็บใหม่ได้ทันที"
+            },
+            {
+                type: "emoji",
+                banner: "✨",
+                title: "อัปเดตระบบใหม่",
+                description: "เพิ่มส่วนจัดแสดงหมวดหมู่ AR Projects และระบบตอบสนองอินเทอร์เฟซเพื่อเพิ่มความลื่นไหลในการใช้งาน"
+            }
+        ];
+
+        let currentAlertIndex = 0;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const splashScreen = document.getElementById("splash-screen");
+            const splashLogo = document.getElementById("splash-logo");
+            
+            // Elements Modal
+            const alertBackdrop = document.getElementById("alert-backdrop");
+            const alertCardContainer = document.getElementById("alert-card-container");
+            const alertBannerBox = document.getElementById("alert-banner-box");
+            const alertTitle = document.getElementById("alert-title");
+            const alertDesc = document.getElementById("alert-desc");
+            const alertDots = document.getElementById("alert-dots");
+            const alertPrevBtn = document.getElementById("alert-prev-btn");
+            const alertNextBtn = document.getElementById("alert-next-btn");
+            const alertCloseBtn = document.getElementById("alert-close-btn");
+            const alertCloseX = document.getElementById("alert-close-x");
+            const dontRemindCheckbox = document.getElementById("dont-remind-checkbox");
+
+            // 1. Intro Splash Sequence (เมื่อเปิดเว็บครั้งแรก)
+            setTimeout(() => {
+                splashLogo.classList.add("splash-logo-enter");
+            }, 100);
+
+            setTimeout(() => {
+                splashLogo.classList.remove("splash-logo-enter");
+                splashLogo.classList.add("splash-logo-exit");
+            }, 1100);
+
+            setTimeout(() => {
+                splashScreen.classList.add("opacity-0", "pointer-events-none");
+            }, 1600);
+
+            // เมื่อ Splash และ Hero Animation ทั้งหมดทำงานเสร็จ
+            setTimeout(() => {
+                splashScreen.style.display = "none";
+                
+                const heroElements = document.querySelectorAll(".hero-element");
+                heroElements.forEach((el, idx) => {
+                    setTimeout(() => {
+                        el.classList.remove("opacity-0");
+                        if (el.id === "hero-line") {
+                            el.classList.add("animate-line");
+                        } else {
+                            el.classList.add("animate-hero");
+                            if (el.tagName === 'ARTICLE') {
+                                el.classList.add("hero-card-active");
+                            }
+                        }
+                    }, idx * 120);
+                });
+
+                const totalHeroAnimTime = (heroElements.length * 120) + 900;
+                
+                setTimeout(() => {
+                    checkAndShowAlertModal();
+                }, totalHeroAnimTime);
+
+            }, 2300);
+
+            // 2. Alert Stack Render & Smooth Sequence Logic
+            function renderAlertCard(index) {
+                const data = alertData[index];
+                
+                if (data.type === "emoji") {
+                    alertBannerBox.innerHTML = `<span>${data.banner}</span>`;
+                } else if (data.type === "image") {
+                    alertBannerBox.innerHTML = `<img src="${data.banner}" alt="Banner" class="w-full h-full object-cover">`;
+                } else if (data.type === "icon") {
+                    alertBannerBox.innerHTML = data.banner;
+                }
+
+                alertTitle.textContent = data.title;
+                alertDesc.textContent = data.description;
+
+                alertPrevBtn.disabled = index === 0;
+                alertNextBtn.disabled = index === alertData.length - 1;
+
+                alertDots.innerHTML = alertData.map((_, i) => `
+                    <span class="h-1.5 rounded-full transition-all duration-300 ${i === index ? 'w-5 bg-blue-400' : 'w-1.5 bg-white/20'}"></span>
+                `).join('');
+            }
+
+            function checkAndShowAlertModal() {
+                const savedDate = localStorage.getItem("hideAlertDate");
+                const today = new Date().toDateString();
+
+                if (savedDate !== today) {
+                    renderAlertCard(currentAlertIndex);
+                    
+                    document.body.classList.add("overflow-hidden");
+
+                    requestAnimationFrame(() => {
+                        alertBackdrop.classList.add("alert-active");
+                    });
+                }
+            }
+
+            function hideAlertModal(savePreference = false) {
+                if (savePreference && dontRemindCheckbox.checked) {
+                    const today = new Date().toDateString();
+                    localStorage.setItem("hideAlertDate", today);
+                }
+
+                alertBackdrop.classList.remove("alert-active");
+
+                setTimeout(() => {
+                    document.body.classList.remove("overflow-hidden");
+                }, 700);
+            }
+
+            // Carousel Actions
+            alertPrevBtn.addEventListener("click", () => {
+                if (currentAlertIndex > 0) {
+                    currentAlertIndex--;
+                    renderAlertCard(currentAlertIndex);
+                }
+            });
+
+            alertNextBtn.addEventListener("click", () => {
+                if (currentAlertIndex < alertData.length - 1) {
+                    currentAlertIndex++;
+                    renderAlertCard(currentAlertIndex);
+                }
+            });
+
+            // Close Actions
+            alertCloseBtn.addEventListener("click", () => hideAlertModal(true));
+            alertCloseX.addEventListener("click", () => hideAlertModal(false));
+
+            alertBackdrop.addEventListener("click", (e) => {
+                if (e.target === alertBackdrop) {
+                    hideAlertModal(false);
+                }
+            });
+
+            // 3. Smooth Page Transition Animation (เมื่อกดปุ่ม "เปิดดูเต็มหน้า")
+            document.querySelectorAll(".open-full-btn").forEach((btn) => {
+                btn.addEventListener("click", (e) => {
+                    e.preventDefault();
+                    const targetUrl = btn.getAttribute("href");
+
+                    if (!targetUrl || targetUrl === "#") return;
+
+                    // แสดงผล Splash Screen
+                    splashScreen.style.display = "flex";
+                    splashScreen.classList.remove("pointer-events-none");
+                    splashScreen.classList.add("opacity-0");
+                    
+                    splashLogo.classList.remove("splash-logo-enter", "splash-logo-exit");
+
+                    // Step 1: ค่อยๆ Fade In มืดลง + โลโก้ลอยเข้ามา
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            splashScreen.classList.remove("opacity-0");
+                            splashScreen.classList.add("opacity-100");
+                            splashLogo.classList.add("splash-logo-enter");
+                        });
+                    });
+
+                    // Step 2: โลโก้จางและขยายออก
+                    setTimeout(() => {
+                        splashLogo.classList.remove("splash-logo-enter");
+                        splashLogo.classList.add("splash-logo-exit");
+                    }, 800);
+
+                    // Step 3: เปลี่ยนหน้าเว็บขณะที่มืดสนิท
+                    setTimeout(() => {
+                        window.location.href = targetUrl;
+                    }, 1300);
+                });
+            });
+
+            // 4. Handle Browser Back Navigation (รองรับเมื่อกดปุ่มย้อนกลับแล้วหน้าจอดำ)
+            window.addEventListener("pageshow", (event) => {
+                const isBackNavigation = event.persisted || 
+                    (window.performance && window.performance.getEntriesByType("navigation")[0]?.type === "back_forward");
+
+                if (isBackNavigation) {
+                    // หากผู้ใช้กดย้อนกลับมา ให้เปิด Splash Screen มืดไว้ก่อน แล้วค่อยๆ Fade Out ออกนุ่มนวล
+                    splashScreen.style.display = "flex";
+                    splashScreen.classList.remove("pointer-events-none", "opacity-0");
+                    splashScreen.classList.add("opacity-100");
+                    splashLogo.classList.remove("splash-logo-enter", "splash-logo-exit");
+
+                    requestAnimationFrame(() => {
+                        splashLogo.classList.add("splash-logo-enter");
+                        
+                        setTimeout(() => {
+                            splashLogo.classList.remove("splash-logo-enter");
+                            splashLogo.classList.add("splash-logo-exit");
+                            splashScreen.classList.remove("opacity-100");
+                            splashScreen.classList.add("opacity-0", "pointer-events-none");
+                        }, 500);
+
+                        setTimeout(() => {
+                            splashScreen.style.display = "none";
+                        }, 1200);
+                    });
+                }
+            });
+
+            // 5. Scroll Reveal Observer
+            const observerOptions = { root: null, rootMargin: "0px", threshold: 0.1 };
+
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    const el = entry.target;
+                    if (entry.isIntersecting) {
+                        el.classList.remove("card-reveal-bottom", "card-reveal-top");
+                        el.classList.add("card-reveal-visible");
+                    } else {
+                        el.classList.remove("card-reveal-visible");
+                        if (entry.boundingClientRect.top > 0) {
+                            el.classList.add("card-reveal-bottom");
+                            el.classList.remove("card-reveal-top");
+                        } else {
+                            el.classList.add("card-reveal-top");
+                            el.classList.remove("card-reveal-bottom");
+                        }
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll(".card-reveal").forEach((el) => {
+                revealObserver.observe(el);
+            });
+        });
+    </script>
+</body>
 </html>

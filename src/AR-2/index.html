@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AR Mosquito Slap</title>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="../../assets/js/page-transition.js"></script>
+  <style>
+    :root {
+      --bg-1: #071018;
+      --bg-2: #0d1d2c;
+      --glass: rgba(11, 20, 30, 0.62);
+      --line: rgba(255, 255, 255, 0.14);
+      --green: #7ef3b1;
+      --gold: #ffd166;
+      --cyan: #5ce1ff;
+      --red: #ff5d73;
+      --text: #f5faff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: radial-gradient(circle at top, #17324d 0%, var(--bg-1) 35%, #02070d 100%);
+      color: var(--text);
+    }
+
+    body {
+      position: relative;
+    }
+
+    #ui-container {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(90vw, 430px);
+      padding: 14px 22px;
+      border-radius: 18px;
+      text-align: center;
+      z-index: 20;
+      background: var(--glass);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+    }
+
+    #score-board {
+      font-size: clamp(1.6rem, 2vw, 2.3rem);
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--green);
+      text-shadow: 0 0 12px rgba(126, 243, 177, 0.6);
+    }
+
+    #status {
+      margin-top: 6px;
+      font-size: clamp(0.8rem, 1.4vw, 1.05rem);
+      color: var(--gold);
+      letter-spacing: 0.02em;
+      line-height: 1.5;
+    }
+
+    #webcam {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    #output_canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: rgba(0, 0, 0, 0.25);
+      transform: scaleX(-1);
+      object-fit: cover;
+    }
+
+    #fallback-message {
+      position: absolute;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      max-width: min(88vw, 420px);
+      padding: 12px 18px;
+      border-radius: 14px;
+      background: rgba(17, 24, 39, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--text);
+      text-align: center;
+      line-height: 1.6;
+      font-size: 0.95rem;
+      display: none;
+      z-index: 30;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    #fallback-message.show {
+      display: block;
+    }
+
+    @media (max-width: 620px) {
+      #ui-container {
+        top: 12px;
+        width: min(92vw, 360px);
+      }
+
+      #status {
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="ui-container">
+    <div id="score-board">คะแนน: <span id="score">0</span></div>
+    <div id="status">ใช้ฝ่ามือตบยุงที่บินอยู่หน้ากล้อง! ✋🦟</div>
+  </div>
+
+  <video id="webcam" playsinline autoplay muted></video>
+  <canvas id="output_canvas"></canvas>
+  <div id="fallback-message">เปิดใช้งานกล้องเพื่อเล่นเกม<br>ถ้ายังไม่เห็นภาพ ให้เปิดผ่าน localhost หรือ HTTPS</div>
+
+  <script>
+    const videoElement = document.getElementById('webcam');
+    const canvasElement = document.getElementById('output_canvas');
+    const canvasCtx = canvasElement.getContext('2d');
+    const scoreText = document.getElementById('score');
+    const statusText = document.getElementById('status');
+    const fallbackMessage = document.getElementById('fallback-message');
+
+    let score = 0;
+
+    const mosquito = {
+      x: 0.5,
+      y: 0.5,
+      vx: 0.02,
+      vy: 0.015,
+      alive: true,
+      hitMessageTimer: 0
+    };
+
+    function randomBetween(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function spawnMosquito() {
+      mosquito.x = randomBetween(0.12, 0.88);
+      mosquito.y = randomBetween(0.12, 0.88);
+      mosquito.vx = randomBetween(-0.035, 0.035);
+      mosquito.vy = randomBetween(-0.03, 0.03);
+      mosquito.alive = true;
+    }
+
+    function updateMosquito() {
+      if (!mosquito.alive) return;
+
+      mosquito.x += mosquito.vx;
+      mosquito.y += mosquito.vy;
+
+      if (mosquito.x <= 0.08 || mosquito.x >= 0.92) mosquito.vx *= -1;
+      if (mosquito.y <= 0.08 || mosquito.y >= 0.92) mosquito.vy *= -1;
+    }
+
+    function drawMosquito(ctx, width, height) {
+      if (mosquito.alive) {
+        ctx.save();
+        ctx.font = 'bold 52px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🦟', mosquito.x * width, mosquito.y * height);
+        ctx.restore();
+      } else if (mosquito.hitMessageTimer > 0) {
+        ctx.save();
+        ctx.font = 'bold 38px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ff5d73';
+        ctx.fillText('💥 โดนตบ!', mosquito.x * width, mosquito.y * height);
+        ctx.restore();
+        mosquito.hitMessageTimer--;
+      }
+    }
+
+    function setScore(value) {
+      score = value;
+      scoreText.textContent = String(score);
+    }
+
+    function registerHit() {
+      mosquito.alive = false;
+      mosquito.hitMessageTimer = 18;
+      setScore(score + 10);
+      statusText.textContent = 'ดีมาก! ตบโดนแล้ว 👍';
+
+      setTimeout(() => {
+        spawnMosquito();
+        statusText.textContent = 'ใช้ฝ่ามือตบยุงที่บินอยู่หน้ากล้อง! ✋🦟';
+      }, 700);
+    }
+
+    const hands = new Hands({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+    });
+
+    hands.setOptions({
+      maxNumHands: 1,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.75,
+      minTrackingConfidence: 0.75
+    });
+
+    hands.onResults((results) => {
+      const width = videoElement.videoWidth || 640;
+      const height = videoElement.videoHeight || 480;
+
+      canvasElement.width = width;
+      canvasElement.height = height;
+
+      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+      updateMosquito();
+      drawMosquito(canvasCtx, canvasElement.width, canvasElement.height);
+
+      if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+        const landmarks = results.multiHandLandmarks[0];
+
+        drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS, {
+          color: 'rgba(92, 225, 255, 0.7)',
+          lineWidth: 3
+        });
+
+        const palmPoint = landmarks[9];
+        const palmX = palmPoint.x * canvasElement.width;
+        const palmY = palmPoint.y * canvasElement.height;
+
+        canvasCtx.beginPath();
+        canvasCtx.arc(palmX, palmY, 44, 0, Math.PI * 2);
+        canvasCtx.fillStyle = 'rgba(92, 225, 255, 0.28)';
+        canvasCtx.fill();
+
+        if (mosquito.alive) {
+          const mosqX = mosquito.x * canvasElement.width;
+          const mosqY = mosquito.y * canvasElement.height;
+          const distance = Math.hypot(palmX - mosqX, palmY - mosqY);
+          const hitRadius = 70;
+
+          if (distance < hitRadius) {
+            registerHit();
+          }
+        }
+      }
+    });
+
+    const camera = new Camera(videoElement, {
+      onFrame: async () => {
+        if (videoElement.readyState >= 2) {
+          await hands.send({ image: videoElement });
+        }
+      },
+      width: 1280,
+      height: 720
+    });
+
+    camera.start().catch(() => {
+      fallbackMessage.classList.add('show');
+      statusText.textContent = 'ไม่สามารถเข้าถึงกล้องได้ กรุณาเปิดสิทธิ์กล้อง';
+    });
+  </script>
+</body>
+</html>
