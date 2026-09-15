@@ -124,28 +124,34 @@
 
                 <button id="btn-ar-toggle" class="glass-panel hover:bg-slate-800/80 text-xs sm:text-sm font-medium px-4 py-2.5 rounded-2xl flex items-center gap-2 transition-all active:scale-95 shadow-lg border border-indigo-500/40 text-indigo-300">
                     <i data-lucide="camera" class="w-4 h-4"></i>
-                    <span id="ar-btn-text" class="hidden sm:inline">เปิดโหมด AR กล้อง + สั่งด้วยมือ</span>
+                    <span id="ar-btn-text" class="hidden sm:inline">เปิดโหมด AR</span>
                 </button>
             </div>
         </header>
 
         <!-- Component Filters -->
-        <div class="pointer-events-auto self-start flex flex-col gap-1.5 glass-panel p-2.5 rounded-2xl shadow-xl max-w-[185px]">
+        <div class="pointer-events-auto self-start flex flex-col gap-1.5 glass-panel p-2.5 rounded-2xl shadow-xl max-w-[195px]">
             <p class="text-[10px] uppercase font-bold text-slate-400 px-2 pt-0.5 tracking-wider">ส่วนประกอบ</p>
-            <button onclick="filterHighlight('all', event)" class="filter-btn text-left text-xs px-3 py-1.5 rounded-xl bg-indigo-600/30 border border-indigo-500/50 text-indigo-200 transition-all">
-                🔍 แสดงทั้งหมด
+            
+            <button onclick="filterHighlight('all', event)" class="filter-btn text-left text-xs px-3 py-1.5 rounded-xl bg-indigo-600/30 border border-indigo-500/50 text-indigo-200 transition-all flex items-center gap-2">
+                <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                <span>แสดงทั้งหมด</span>
             </button>
-            <button onclick="filterHighlight('backbone', event)" class="filter-btn text-left text-xs px-3 py-1.5 rounded-xl hover:bg-slate-800/50 text-slate-300 transition-all">
-                🔵 แกนฟอสเฟต-น้ำตาล
+            <button onclick="filterHighlight('backbone', event)" class="filter-btn text-left text-xs px-3 py-1.5 rounded-xl hover:bg-slate-800/50 text-slate-300 transition-all flex items-center gap-2">
+                <i data-lucide="disc" class="w-3.5 h-3.5 text-blue-400"></i>
+                <span>แกนฟอสเฟต-น้ำตาล</span>
             </button>
-            <button onclick="filterHighlight('at', event)" class="filter-btn text-left text-xs px-3 py-1.5 rounded-xl hover:bg-slate-800/50 text-slate-300 transition-all">
-                🟢 เบสคู่สม A - T
+            <button onclick="filterHighlight('at', event)" class="filter-btn text-left text-xs px-3 py-1.5 rounded-xl hover:bg-slate-800/50 text-slate-300 transition-all flex items-center gap-2">
+                <i data-lucide="disc" class="w-3.5 h-3.5 text-emerald-400"></i>
+                <span>เบสคู่สม A - T</span>
             </button>
-            <button onclick="filterHighlight('gc', event)" class="filter-btn text-left text-xs px-3 py-1.5 rounded-xl hover:bg-slate-800/50 text-slate-300 transition-all">
-                🟣 เบสคู่สม G - C
+            <button onclick="filterHighlight('gc', event)" class="filter-btn text-left text-xs px-3 py-1.5 rounded-xl hover:bg-slate-800/50 text-slate-300 transition-all flex items-center gap-2">
+                <i data-lucide="disc" class="w-3.5 h-3.5 text-purple-400"></i>
+                <span>เบสคู่สม G - C</span>
             </button>
-            <button onclick="filterHighlight('hbond', event)" class="filter-btn text-left text-xs px-3 py-1.5 rounded-xl hover:bg-slate-800/50 text-slate-300 transition-all">
-                ⚪ พันธะไฮโดรเจน
+            <button onclick="filterHighlight('hbond', event)" class="filter-btn text-left text-xs px-3 py-1.5 rounded-xl hover:bg-slate-800/50 text-slate-300 transition-all flex items-center gap-2">
+                <i data-lucide="disc" class="w-3.5 h-3.5 text-slate-400"></i>
+                <span>พันธะไฮโดรเจน</span>
             </button>
         </div>
 
@@ -165,7 +171,7 @@
         <!-- Dynamic Gesture Toast -->
         <div id="instruction-toast" class="self-center glass-panel px-5 py-2.5 rounded-full text-xs text-slate-200 flex items-center gap-2.5 shadow-lg mb-2">
             <i data-lucide="sparkles" class="w-4 h-4 text-indigo-400 animate-pulse"></i>
-            <span id="toast-text">🖐️ เลื่อนมือขยับ Cursor • 🤏 จีบนิ้วเพื่อจับหมุน DNA • 👆 ชี้เพื่อดูข้อมูล</span>
+            <span id="toast-text">เลื่อนมือขยับ Cursor • จีบนิ้วเพื่อจับหมุน DNA • ชี้เพื่อดูข้อมูล</span>
         </div>
     </div>
 
@@ -465,15 +471,15 @@
             if (state === 'pinch') {
                 cursorEl.className = "flex items-center justify-center w-14 h-14 rounded-full border-2 border-emerald-400 bg-emerald-500/40 backdrop-blur-md shadow-[0_0_25px_rgba(52,211,153,0.9)] scale-110";
                 iconEl.setAttribute('data-lucide', 'grab');
-                document.getElementById('toast-text').textContent = "✊ กำลังจับหมุน DNA...";
+                document.getElementById('toast-text').textContent = "กำลังจับหมุน DNA...";
             } else if (state === 'point') {
                 cursorEl.className = "flex items-center justify-center w-12 h-12 rounded-full border-2 border-amber-400 bg-amber-500/40 backdrop-blur-md shadow-[0_0_25px_rgba(251,191,36,0.9)] scale-105";
                 iconEl.setAttribute('data-lucide', 'pointer');
-                document.getElementById('toast-text').textContent = "👆 กำลังเลือกชิ้นส่วน DNA";
+                document.getElementById('toast-text').textContent = "กำลังเลือกชิ้นส่วน DNA";
             } else {
                 cursorEl.className = "flex items-center justify-center w-12 h-12 rounded-full border-2 border-indigo-400 bg-indigo-500/30 backdrop-blur-md shadow-[0_0_20px_rgba(99,102,241,0.8)]";
                 iconEl.setAttribute('data-lucide', 'hand');
-                document.getElementById('toast-text').textContent = "🖐️ เลื่อนมือขยับ Cursor • 🤏 จีบนิ้วเพื่อจับหมุน DNA • 👆 ชี้เพื่อดูข้อมูล";
+                document.getElementById('toast-text').textContent = "เลื่อนมือขยับ Cursor • จีบนิ้วเพื่อจับหมุน DNA • ชี้เพื่อดูข้อมูล";
             }
             lucide.createIcons();
         }
@@ -488,29 +494,23 @@
             cursorEl.classList.remove('hidden');
             const landmarks = results.multiHandLandmarks[0];
 
-            // Landmarks: 0=Wrist, 4=Thumb tip, 8=Index tip, 12=Middle tip, 16=Ring tip, 20=Pinky tip
             const indexTip = landmarks[8];
             const thumbTip = landmarks[4];
             const wrist = landmarks[0];
             const middleTip = landmarks[12];
             const ringTip = landmarks[16];
-            const pinkyTip = landmarks[20];
 
-            // คำนวณพิกัด Cursor ตามโหมดภาพกระจก
             const isMirrored = videoElement.classList.contains('mirror-mode');
             const targetX = (isMirrored ? (1 - indexTip.x) : indexTip.x) * window.innerWidth;
             const targetY = indexTip.y * window.innerHeight;
 
-            // Smooth Cursor Interpolation (Lerp)
             cursorX += (targetX - cursorX) * 0.45;
             cursorY += (targetY - cursorY) * 0.45;
             cursorEl.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0)`;
 
-            // Gesture 1: Pinch Detection (Thumb + Index Tip distance)
             const pinchDist = Math.hypot(thumbTip.x - indexTip.x, thumbTip.y - indexTip.y, thumbTip.z - indexTip.z);
             const isPinchGesture = pinchDist < 0.065;
 
-            // Gesture 2: Pointing Detection (Index extended, others curled)
             const dIndex = Math.hypot(indexTip.x - wrist.x, indexTip.y - wrist.y);
             const dMiddle = Math.hypot(middleTip.x - wrist.x, middleTip.y - wrist.y);
             const dRing = Math.hypot(ringTip.x - wrist.x, ringTip.y - wrist.y);
@@ -584,7 +584,6 @@
 
                         btnFlipCam.classList.remove('hidden');
 
-                        // MediaPipe Camera Utils Loop
                         mpCameraUtils = new Camera(videoElement, {
                             onFrame: async () => {
                                 if (isARMode && handsDetector) {
@@ -606,7 +605,7 @@
                         btnAR.classList.add('bg-red-500/20', 'border-red-500/50', 'text-red-300');
                         isARMode = true;
                     } catch (err) {
-                        alert("⚠️ ไม่สามารถเปิดกล้องได้!\n\nโปรดอนุญาตสิทธิ์การใช้กล้องในเบราว์เซอร์");
+                        alert("ไม่สามารถเปิดกล้องได้!\n\nโปรดอนุญาตสิทธิ์การใช้กล้องในเบราว์เซอร์");
                     }
                 } else {
                     if (videoStream) videoStream.getTracks().forEach(track => track.stop());
