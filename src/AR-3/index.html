@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>DNA Structure WebAR - Hand Gesture Control</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Three.js Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <!-- MediaPipe Hand Tracking CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <style>
+        * {
+            font-family: 'Prompt', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        body {
+            height: 100dvh;
+            overflow: hidden;
+            background-color: #020617;
+            transition: background-color 0.5s ease;
+        }
+        #webgl-canvas {
+            touch-action: none;
+        }
+        #camera-feed.mirror-mode {
+            transform: scaleX(-1);
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.8);
+        }
+        .glass-card {
+            background: rgba(15, 23, 42, 0.96);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1.5px solid rgba(129, 140, 248, 0.6);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.95), 0 0 25px rgba(99, 102, 241, 0.35);
+        }
+        /* Style ตัวชี้ Cursor สั่งการด้วยมือ */
+        #hand-cursor {
+            pointer-events: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+            margin-left: -24px;
+            margin-top: -24px;
+            will-change: transform;
+            transition: width 0.2s, height 0.2s, background-color 0.2s, border-color 0.2s;
+        }
+    </style>
+</head>
+<body id="app-body" class="relative w-full h-full text-slate-100">
+
+    <!-- Custom AR Hand Cursor -->
+    <div id="hand-cursor" class="hidden flex items-center justify-center w-12 h-12 rounded-full border-2 border-indigo-400 bg-indigo-500/30 backdrop-blur-md shadow-[0_0_20px_rgba(99,102,241,0.8)]">
+        <i id="cursor-icon" data-lucide="hand" class="w-6 h-6 text-indigo-200 transition-transform duration-200"></i>
+    </div>
+
+    <!-- AR Camera Video Feed Layer -->
+    <video id="camera-feed" class="fixed inset-0 w-full h-full object-cover z-0 hidden opacity-0 transition-opacity duration-700" autoplay playsinline muted></video>
+
+    <!-- WebGL Canvas for Three.js -->
+    <canvas id="webgl-canvas" class="fixed inset-0 w-full h-full z-10 outline-none cursor-grab active:cursor-grabbing"></canvas>
+
+    <!-- Transition Curtain Overlay -->
+    <div id="transition-curtain" class="fixed inset-0 z-50 flex flex-col items-center justify-center opacity-0 pointer-events-none transition-all duration-500 bg-slate-950/90 backdrop-blur-md">
+        <div class="w-16 h-16 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin mb-4 shadow-lg shadow-indigo-500/50"></div>
+        <p id="curtain-text" class="text-sm font-semibold tracking-widest text-indigo-300 uppercase animate-pulse">กำลังโหลดระบบ Hand Tracking AR...</p>
+    </div>
+
+    <!-- Center-Focused Floating Info Card -->
+    <div id="floating-card" class="fixed z-30 w-[88vw] max-w-sm sm:max-w-md glass-card p-5 sm:p-6 rounded-3xl transition-opacity duration-300 opacity-0 pointer-events-none left-0 top-0">
+        <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-700/80">
+            <span id="card-tag" class="text-xs font-semibold px-3 py-1 rounded-full bg-indigo-500/25 text-indigo-300 border border-indigo-500/40">
+                องค์ประกอบโมเลกุล
+            </span>
+            <button id="btn-close-card" class="pointer-events-auto text-slate-400 hover:text-white p-1.5 rounded-full hover:bg-slate-800/80 transition-all active:scale-90">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <h3 id="card-title" class="text-base sm:text-lg font-bold text-white mb-2 leading-tight">หัวข้อชิ้นส่วน</h3>
+        <p id="card-desc" class="text-xs sm:text-sm text-slate-200 font-light leading-relaxed">
+            คำอธิบายรายละเอียดโครงสร้าง...
+        </p>
+    </div>
+
+    <!-- UI Overlay Layer -->
+    <div class="fixed inset-0 z-20 pointer-events-none flex flex-col justify-between p-4 md:p-6">
+        
+        <!-- Header Bar -->
+        <header class="flex justify-between items-center w-full max-w-6xl mx-auto pointer-events-auto gap-2">
+            <div class="glass-panel px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-lg border border-slate-700/50">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shadow-indigo-500/40">
+                    <i data-lucide="dna" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-sm sm:text-base font-bold text-white tracking-wide leading-tight">โครงสร้าง DNA 3D/AR</h1>
+                    <p class="text-[11px] text-slate-400 font-light">รองรับการสั่งการด้วยมือ (Hand Tracking)</p>
+                </div>
+            </div>
+
+            <!-- AR Controls Container -->
+            <div class="flex items-center gap-2">
+                <button id="btn-flip-cam" class="hidden glass-panel hover:bg-slate-800/80 p-2.5 rounded-2xl transition-all active:scale-95 text-slate-300 border border-slate-700/50" title="สลับภาพซ้าย-ขวา">
+                    <i data-lucide="flip-horizontal" class="w-5 h-5"></i>
+                </button>
+
+                <button id="btn-ar-toggle" class="glass-panel hover:bg-slate-800/80 text-xs sm:text-sm font-medium px-4 py-2.5 rounded-2xl flex items-center gap-2 transition-all active:scale-95 shadow-lg border border-indigo-500/40 text-indigo-300">
+                    <i data-lucide="camera" class="w-4 h-4"></i>
+                    <span id="ar-btn-text" class="hidden sm:inline">เปิดโหมด AR กล้อง + สั่งด้วยมือ</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Component Filters -->
+        <div class="pointer-events-auto self-start flex flex-col gap-1.5 glass-panel p-2.5 rounded-2xl shadow-xl max-w-[185px]">
+            <p class="text-[10px] uppercase font-bold text-slate-400 px-2 pt-0.5 tracking-wider">ส่วนประกอบ</p>
+            <button onclick="filterHighlight('all', event)" class="filter-btn text-left text-xs px-3 py-1.5 rounded-xl bg-indigo-600/30 border border-indigo-500/50 text-indigo-200 transition-all">
+                🔍 แสดงทั้งหมด
+            </button>
+            <button onclick="filterHighlight('backbone', event)" class="filter-btn text-left text-xs px-3 py-1.5 rounded-xl hover:bg-slate-800/50 text-slate-300 transition-all">
+                🔵 แกนฟอสเฟต-น้ำตาล
+            </button>
+            <button onclick="filterHighlight('at', event)" class="filter-btn text-left text-xs px-3 py-1.5 rounded-xl hover:bg-slate-800/50 text-slate-300 transition-all">
+                🟢 เบสคู่สม A - T
+            </button>
+            <button onclick="filterHighlight('gc', event)" class="filter-btn text-left text-xs px-3 py-1.5 rounded-xl hover:bg-slate-800/50 text-slate-300 transition-all">
+                🟣 เบสคู่สม G - C
+            </button>
+            <button onclick="filterHighlight('hbond', event)" class="filter-btn text-left text-xs px-3 py-1.5 rounded-xl hover:bg-slate-800/50 text-slate-300 transition-all">
+                ⚪ พันธะไฮโดรเจน
+            </button>
+        </div>
+
+        <!-- Floating Action Buttons -->
+        <div class="pointer-events-auto absolute right-4 top-20 flex flex-col gap-2">
+            <button id="btn-assembly" title="เล่นอนิเมชันประกอบโมเลกุล" class="glass-panel p-3 rounded-2xl hover:bg-slate-800 text-indigo-400 active:scale-95 transition-all shadow-md">
+                <i data-lucide="layers" class="w-5 h-5"></i>
+            </button>
+            <button id="btn-reset" title="รีเซ็ตมุมมอง" class="glass-panel p-3 rounded-2xl hover:bg-slate-800 text-slate-300 active:scale-95 transition-all shadow-md">
+                <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+            </button>
+            <button id="btn-rotate" title="หยุด/หมุนอัตโนมัติ" class="glass-panel p-3 rounded-2xl hover:bg-slate-800 text-slate-300 active:scale-95 transition-all shadow-md">
+                <i data-lucide="pause" class="w-5 h-5" id="icon-rotate"></i>
+            </button>
+        </div>
+
+        <!-- Dynamic Gesture Toast -->
+        <div id="instruction-toast" class="self-center glass-panel px-5 py-2.5 rounded-full text-xs text-slate-200 flex items-center gap-2.5 shadow-lg mb-2">
+            <i data-lucide="sparkles" class="w-4 h-4 text-indigo-400 animate-pulse"></i>
+            <span id="toast-text">🖐️ เลื่อนมือขยับ Cursor • 🤏 จีบนิ้วเพื่อจับหมุน DNA • 👆 ชี้เพื่อดูข้อมูล</span>
+        </div>
+    </div>
+
+    <!-- Engine Logic Script -->
+    <script>
+        lucide.createIcons();
+
+        const bioData = {
+            sugar: { tag: "Pentose Sugar", title: "น้ำตาลดีออกซีไรโบส (Deoxyribose)", desc: "น้ำตาลที่มีคาร์บอน 5 อะตอม เป็นโครงสร้างแกนหลัก ยึดต่อระหว่างหมู่ฟอสเฟตและเบส nitrogenous base" },
+            phosphate: { tag: "Phosphate Group", title: "หมู่ฟอสเฟต (PO4 3-)", desc: "ยึดเหนี่ยวระหว่างน้ำตาลโมเลกุลหนึ่งกับโมเลกุลถัดไป มีประจุลบสูงทำให้ DNA มีสมบัติเป็นกรด" },
+            at: { tag: "Base Pair (A-T)", title: "คู่เบส Adenine (A) - Thymine (T)", desc: "เบสคู่สมที่เชื่อมต่อกันด้วยพันธะไฮโดรเจน 2 พันธะ" },
+            gc: { tag: "Base Pair (G-C)", title: "คู่เบส Guanine (G) - Cytosine (C)", desc: "เบสคู่สมที่เชื่อมกันด้วยพันธะไฮโดรเจน 3 พันธะ มีความเสถียรสูง" },
+            hbond: { tag: "Chemical Bond", title: "พันธะไฮโดรเจน (Hydrogen Bond)", desc: "แรงดึงดูดทางเคมีชนิดอ่อน ช่วยให้สาย DNA เกลียวคู่คงรูปแต่แยกออกจากกันได้ง่าย" }
+        };
+
+        let scene, camera, renderer, controls;
+        let dnaGroup = new THREE.Group();
+        let particleSystem, orbitingLight1, orbitingLight2, highlightRing;
+        const interactiveObjects = [];
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let activeSelectedObject = null;
+        let isAutoRotating = true, isARMode = false, videoStream = null;
+
+        let pointerStart = { x: 0, y: 0 };
+
+        // Hand Tracking Variables
+        let handsDetector = null;
+        let mpCameraUtils = null;
+        let cursorX = window.innerWidth / 2, cursorY = window.innerHeight / 2;
+        let isPinching = false;
+        let pinchStartPos = { x: 0, y: 0 };
+        let initialDNARotation = { x: 0, y: 0 };
+        let lastPointTime = 0;
+        let currentCursorState = 'hover'; // 'hover' | 'pinch' | 'point'
+
+        function initEngine() {
+            const canvas = document.getElementById('webgl-canvas');
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(48, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 0, 11.5);
+
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 1.8;
+            controls.maxDistance = 22;
+            controls.minDistance = 3;
+
+            setupLighting();
+            buildDNAModel();
+            buildParticles();
+            buildHighlightRing();
+
+            window.addEventListener('resize', onWindowResize);
+
+            canvas.addEventListener('pointerdown', (e) => {
+                pointerStart.x = e.clientX;
+                pointerStart.y = e.clientY;
+            });
+
+            canvas.addEventListener('pointerup', (e) => {
+                const moveDist = Math.hypot(e.clientX - pointerStart.x, e.clientY - pointerStart.y);
+                if (moveDist < 7) {
+                    handlePointerClick(e);
+                }
+            });
+
+            document.getElementById('btn-close-card').addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeFloatingCard();
+            });
+
+            document.getElementById('btn-assembly').addEventListener('click', playAssemblyAnimation);
+            document.getElementById('btn-flip-cam').addEventListener('click', toggleCameraMirror);
+
+            playAssemblyAnimation();
+            animate(0);
+        }
+
+        function setupLighting() {
+            scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+            const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
+            keyLight.position.set(6, 12, 8);
+            scene.add(keyLight);
+
+            orbitingLight1 = new THREE.PointLight(0x38bdf8, 2.0, 18);
+            scene.add(orbitingLight1);
+            orbitingLight2 = new THREE.PointLight(0xc084fc, 2.0, 18);
+            scene.add(orbitingLight2);
+        }
+
+        function buildDNAModel() {
+            dnaGroup.name = "DNARootGroup";
+            scene.add(dnaGroup);
+
+            const totalPairs = 16, radius = 2.2, heightStep = 0.55, angleStep = 0.42;
+            const sugarGeo = new THREE.SphereGeometry(0.28, 24, 24);
+            const phosphateGeo = new THREE.SphereGeometry(0.22, 20, 20);
+            const baseSeq = ['AT', 'GC', 'TA', 'CG', 'AT', 'CG', 'GC', 'TA'];
+
+            for (let i = 0; i < totalPairs; i++) {
+                const y = (i - totalPairs / 2) * heightStep;
+                const angle = i * angleStep;
+
+                const x1 = Math.cos(angle) * radius, z1 = Math.sin(angle) * radius;
+                const x2 = Math.cos(angle + Math.PI) * radius, z2 = Math.sin(angle + Math.PI) * radius;
+
+                const sugarMat = new THREE.MeshPhysicalMaterial({ color: 0x4A90E2, roughness: 0.15, clearcoat: 0.8 });
+                const phosMat = new THREE.MeshPhysicalMaterial({ color: 0xF5A623, roughness: 0.2, clearcoat: 0.6 });
+
+                createInteractiveMesh(sugarGeo, sugarMat, new THREE.Vector3(x1, y, z1), 'sugar');
+                createInteractiveMesh(sugarGeo, sugarMat, new THREE.Vector3(x2, y, z2), 'sugar');
+
+                const p1Pos = new THREE.Vector3(Math.cos(angle + 0.18) * (radius + 0.2), y + 0.25, Math.sin(angle + 0.18) * (radius + 0.2));
+                const p2Pos = new THREE.Vector3(Math.cos(angle + Math.PI + 0.18) * (radius + 0.2), y - 0.25, Math.sin(angle + Math.PI + 0.18) * (radius + 0.2));
+
+                createInteractiveMesh(phosphateGeo, phosMat, p1Pos, 'phosphate');
+                createInteractiveMesh(phosphateGeo, phosMat, p2Pos, 'phosphate');
+
+                const pair = baseSeq[i % baseSeq.length];
+                let c1 = (pair[0] === 'A') ? 0x7ED321 : (pair[0] === 'T') ? 0xE91E63 : (pair[0] === 'G') ? 0x9013FE : 0xFF9800;
+                let c2 = (pair[1] === 'A') ? 0x7ED321 : (pair[1] === 'T') ? 0xE91E63 : (pair[1] === 'G') ? 0x9013FE : 0xFF9800;
+                let key = (pair === 'AT' || pair === 'TA') ? 'at' : 'gc';
+
+                createCylinderMesh(new THREE.Vector3(x1, y, z1), new THREE.Vector3(0, y, 0), 0.1, new THREE.MeshPhysicalMaterial({ color: c1, roughness: 0.15 }), key);
+                createCylinderMesh(new THREE.Vector3(x2, y, z2), new THREE.Vector3(0, y, 0), 0.1, new THREE.MeshPhysicalMaterial({ color: c2, roughness: 0.15 }), key);
+
+                const hCount = (key === 'gc') ? 3 : 2;
+                for (let h = 0; h < hCount; h++) {
+                    const offset = (h - (hCount - 1) / 2) * 0.12;
+                    createInteractiveMesh(new THREE.SphereGeometry(0.065, 12, 12), new THREE.MeshBasicMaterial({ color: 0xFFFFFF }), new THREE.Vector3(0, y + offset, 0), 'hbond');
+                }
+            }
+        }
+
+        function createInteractiveMesh(geo, mat, pos, key) {
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.copy(pos);
+            mesh.userData = { key: key, targetPos: pos.clone() };
+            dnaGroup.add(mesh);
+            interactiveObjects.push(mesh);
+            return mesh;
+        }
+
+        function createCylinderMesh(p1, p2, radius, mat, key) {
+            const dir = new THREE.Vector3().subVectors(p2, p1);
+            const geo = new THREE.CylinderGeometry(radius, radius, dir.length(), 16);
+            const mesh = new THREE.Mesh(geo, mat);
+            const pos = new THREE.Vector3().copy(p1).add(p2).multiplyScalar(0.5);
+            mesh.position.copy(pos);
+            mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().normalize());
+            mesh.userData = { key: key, targetPos: pos.clone() };
+            dnaGroup.add(mesh);
+            interactiveObjects.push(mesh);
+            return mesh;
+        }
+
+        function buildParticles() {
+            const count = 300, geo = new THREE.BufferGeometry(), pos = new Float32Array(count * 3);
+            for (let i = 0; i < count * 3; i++) pos[i] = (Math.random() - 0.5) * 20;
+            geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+            particleSystem = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.07, color: 0x818cf8, transparent: true, opacity: 0.6 }));
+            scene.add(particleSystem);
+        }
+
+        function buildHighlightRing() {
+            const ringGeo = new THREE.RingGeometry(0.38, 0.45, 32);
+            const ringMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide, transparent: true, opacity: 0 });
+            highlightRing = new THREE.Mesh(ringGeo, ringMat);
+            scene.add(highlightRing);
+        }
+
+        function playAssemblyAnimation() {
+            closeFloatingCard();
+            const tl = gsap.timeline();
+            interactiveObjects.forEach((obj, idx) => {
+                obj.position.set((Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15, (Math.random() - 0.5) * 15);
+                obj.scale.set(0.01, 0.01, 0.01);
+                obj.material.transparent = true;
+                obj.material.opacity = 0;
+
+                tl.to(obj.position, { x: obj.userData.targetPos.x, y: obj.userData.targetPos.y, z: obj.userData.targetPos.z, duration: 1.2, ease: "back.out(1.4)" }, idx * 0.012);
+                tl.to(obj.scale, { x: 1, y: 1, z: 1, duration: 1.0, ease: "power3.out" }, idx * 0.012);
+                tl.to(obj.material, { opacity: 1, duration: 0.8, onComplete: () => { obj.material.transparent = false; } }, idx * 0.012);
+            });
+        }
+
+        function handlePointerClick(event) {
+            triggerPointRaycast(event.clientX, event.clientY);
+        }
+
+        function triggerPointRaycast(screenX, screenY) {
+            mouse.x = (screenX / window.innerWidth) * 2 - 1;
+            mouse.y = -(screenY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(interactiveObjects);
+
+            if (intersects.length > 0) {
+                selectAndFocusObject(intersects[0].object);
+            }
+        }
+
+        function selectAndFocusObject(mesh) {
+            activeSelectedObject = mesh;
+            const dataKey = mesh.userData.key;
+            if (!dataKey || !bioData[dataKey]) return;
+
+            gsap.fromTo(mesh.scale, 
+                { x: 1, y: 1, z: 1 }, 
+                { x: 1.5, y: 1.5, z: 1.5, duration: 0.3, yoyo: true, repeat: 1, ease: "back.out(2)" }
+            );
+
+            const worldPos = new THREE.Vector3();
+            mesh.getWorldPosition(worldPos);
+            highlightRing.position.copy(worldPos);
+            highlightRing.lookAt(camera.position);
+            highlightRing.material.opacity = 0.9;
+            gsap.fromTo(highlightRing.scale, { x: 0.5, y: 0.5 }, { x: 1.4, y: 1.4, duration: 0.4, ease: "power2.out" });
+
+            openFloatingCard(bioData[dataKey]);
+        }
+
+        function openFloatingCard(data) {
+            const card = document.getElementById('floating-card');
+            document.getElementById('card-tag').textContent = data.tag;
+            document.getElementById('card-title').textContent = data.title;
+            document.getElementById('card-desc').textContent = data.desc;
+
+            updateCardPosition();
+
+            card.classList.remove('opacity-0', 'pointer-events-none');
+            card.classList.add('opacity-100', 'pointer-events-auto');
+            gsap.fromTo(card, { scale: 0.85, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(1.5)" });
+        }
+
+        function closeFloatingCard() {
+            const card = document.getElementById('floating-card');
+            gsap.to(card, { scale: 0.9, opacity: 0, duration: 0.2, onComplete: () => {
+                card.classList.add('opacity-0', 'pointer-events-none');
+                activeSelectedObject = null;
+                if (highlightRing) highlightRing.material.opacity = 0;
+            }});
+        }
+
+        function updateCardPosition() {
+            if (!activeSelectedObject) return;
+            const card = document.getElementById('floating-card');
+            
+            const worldPos = new THREE.Vector3();
+            activeSelectedObject.getWorldPosition(worldPos);
+            const screenPos = worldPos.clone().project(camera);
+
+            const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+            const y = (-(screenPos.y * 0.5) + 0.5) * window.innerHeight;
+
+            const cardWidth = card.offsetWidth || 320;
+            const cardHeight = card.offsetHeight || 160;
+
+            const clampedX = Math.max(16, Math.min(window.innerWidth - cardWidth - 16, x - cardWidth / 2));
+            const clampedY = Math.max(16, Math.min(window.innerHeight - cardHeight - 16, y - cardHeight - 20));
+
+            card.style.left = `${clampedX}px`;
+            card.style.top = `${clampedY}px`;
+        }
+
+        // --- MediaPipe Hand Tracking Setup ---
+        function initHandTracking() {
+            handsDetector = new Hands({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+            });
+
+            handsDetector.setOptions({
+                maxNumHands: 1,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.65,
+                minTrackingConfidence: 0.65
+            });
+
+            handsDetector.onResults(onHandResults);
+        }
+
+        function setCursorState(state) {
+            if (currentCursorState === state) return;
+            currentCursorState = state;
+
+            const cursorEl = document.getElementById('hand-cursor');
+            const iconEl = document.getElementById('cursor-icon');
+
+            if (state === 'pinch') {
+                cursorEl.className = "flex items-center justify-center w-14 h-14 rounded-full border-2 border-emerald-400 bg-emerald-500/40 backdrop-blur-md shadow-[0_0_25px_rgba(52,211,153,0.9)] scale-110";
+                iconEl.setAttribute('data-lucide', 'grab');
+                document.getElementById('toast-text').textContent = "✊ กำลังจับหมุน DNA...";
+            } else if (state === 'point') {
+                cursorEl.className = "flex items-center justify-center w-12 h-12 rounded-full border-2 border-amber-400 bg-amber-500/40 backdrop-blur-md shadow-[0_0_25px_rgba(251,191,36,0.9)] scale-105";
+                iconEl.setAttribute('data-lucide', 'pointer');
+                document.getElementById('toast-text').textContent = "👆 กำลังเลือกชิ้นส่วน DNA";
+            } else {
+                cursorEl.className = "flex items-center justify-center w-12 h-12 rounded-full border-2 border-indigo-400 bg-indigo-500/30 backdrop-blur-md shadow-[0_0_20px_rgba(99,102,241,0.8)]";
+                iconEl.setAttribute('data-lucide', 'hand');
+                document.getElementById('toast-text').textContent = "🖐️ เลื่อนมือขยับ Cursor • 🤏 จีบนิ้วเพื่อจับหมุน DNA • 👆 ชี้เพื่อดูข้อมูล";
+            }
+            lucide.createIcons();
+        }
+
+        function onHandResults(results) {
+            const cursorEl = document.getElementById('hand-cursor');
+            if (!isARMode || !results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
+                cursorEl.classList.add('hidden');
+                return;
+            }
+
+            cursorEl.classList.remove('hidden');
+            const landmarks = results.multiHandLandmarks[0];
+
+            // Landmarks: 0=Wrist, 4=Thumb tip, 8=Index tip, 12=Middle tip, 16=Ring tip, 20=Pinky tip
+            const indexTip = landmarks[8];
+            const thumbTip = landmarks[4];
+            const wrist = landmarks[0];
+            const middleTip = landmarks[12];
+            const ringTip = landmarks[16];
+            const pinkyTip = landmarks[20];
+
+            // คำนวณพิกัด Cursor ตามโหมดภาพกระจก
+            const isMirrored = videoElement.classList.contains('mirror-mode');
+            const targetX = (isMirrored ? (1 - indexTip.x) : indexTip.x) * window.innerWidth;
+            const targetY = indexTip.y * window.innerHeight;
+
+            // Smooth Cursor Interpolation (Lerp)
+            cursorX += (targetX - cursorX) * 0.45;
+            cursorY += (targetY - cursorY) * 0.45;
+            cursorEl.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0)`;
+
+            // Gesture 1: Pinch Detection (Thumb + Index Tip distance)
+            const pinchDist = Math.hypot(thumbTip.x - indexTip.x, thumbTip.y - indexTip.y, thumbTip.z - indexTip.z);
+            const isPinchGesture = pinchDist < 0.065;
+
+            // Gesture 2: Pointing Detection (Index extended, others curled)
+            const dIndex = Math.hypot(indexTip.x - wrist.x, indexTip.y - wrist.y);
+            const dMiddle = Math.hypot(middleTip.x - wrist.x, middleTip.y - wrist.y);
+            const dRing = Math.hypot(ringTip.x - wrist.x, ringTip.y - wrist.y);
+            const isPointGesture = (dIndex > dMiddle * 1.25) && (dIndex > dRing * 1.25) && !isPinchGesture;
+
+            if (isPinchGesture) {
+                setCursorState('pinch');
+                if (!isPinching) {
+                    isPinching = true;
+                    pinchStartPos = { x: cursorX, y: cursorY };
+                    initialDNARotation = { x: dnaGroup.rotation.x, y: dnaGroup.rotation.y };
+                    controls.autoRotate = false;
+                } else {
+                    const deltaX = (cursorX - pinchStartPos.x) * 0.008;
+                    const deltaY = (cursorY - pinchStartPos.y) * 0.008;
+                    dnaGroup.rotation.y = initialDNARotation.y + deltaX;
+                    dnaGroup.rotation.x = initialDNARotation.x + deltaY;
+                }
+            } else if (isPointGesture) {
+                isPinching = false;
+                setCursorState('point');
+
+                const now = Date.now();
+                if (now - lastPointTime > 500) {
+                    triggerPointRaycast(cursorX, cursorY);
+                    lastPointTime = now;
+                }
+            } else {
+                isPinching = false;
+                setCursorState('hover');
+                if (isAutoRotating) controls.autoRotate = true;
+            }
+        }
+
+        // --- AR Camera Toggle Logic ---
+        const btnAR = document.getElementById('btn-ar-toggle');
+        const btnFlipCam = document.getElementById('btn-flip-cam');
+        const videoElement = document.getElementById('camera-feed');
+        const curtain = document.getElementById('transition-curtain');
+
+        function toggleCameraMirror() {
+            videoElement.classList.toggle('mirror-mode');
+        }
+
+        btnAR.addEventListener('click', async () => {
+            curtain.classList.remove('opacity-0', 'pointer-events-none');
+            curtain.classList.add('opacity-100', 'pointer-events-auto');
+
+            setTimeout(async () => {
+                if (!isARMode) {
+                    try {
+                        if (!handsDetector) initHandTracking();
+
+                        videoStream = await navigator.mediaDevices.getUserMedia({
+                            video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+                            audio: false
+                        });
+
+                        videoElement.srcObject = videoStream;
+                        await videoElement.play();
+
+                        const isDesktop = !/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                        const videoTrack = videoStream.getVideoTracks()[0];
+                        const settings = videoTrack.getSettings ? videoTrack.getSettings() : {};
+
+                        if (isDesktop || settings.facingMode === 'user') {
+                            videoElement.classList.add('mirror-mode');
+                        } else {
+                            videoElement.classList.remove('mirror-mode');
+                        }
+
+                        btnFlipCam.classList.remove('hidden');
+
+                        // MediaPipe Camera Utils Loop
+                        mpCameraUtils = new Camera(videoElement, {
+                            onFrame: async () => {
+                                if (isARMode && handsDetector) {
+                                    await handsDetector.send({ image: videoElement });
+                                }
+                            },
+                            width: 1280,
+                            height: 720
+                        });
+                        mpCameraUtils.start();
+
+                        videoElement.classList.remove('hidden');
+                        requestAnimationFrame(() => videoElement.classList.remove('opacity-0'));
+
+                        document.getElementById('app-body').style.backgroundColor = 'transparent';
+                        renderer.setClearColor(0x000000, 0);
+
+                        document.getElementById('ar-btn-text').textContent = "ปิดโหมด AR";
+                        btnAR.classList.add('bg-red-500/20', 'border-red-500/50', 'text-red-300');
+                        isARMode = true;
+                    } catch (err) {
+                        alert("⚠️ ไม่สามารถเปิดกล้องได้!\n\nโปรดอนุญาตสิทธิ์การใช้กล้องในเบราว์เซอร์");
+                    }
+                } else {
+                    if (videoStream) videoStream.getTracks().forEach(track => track.stop());
+                    if (mpCameraUtils) mpCameraUtils.stop();
+
+                    videoElement.classList.add('opacity-0');
+                    setTimeout(() => videoElement.classList.add('hidden'), 500);
+
+                    document.getElementById('hand-cursor').classList.add('hidden');
+                    btnFlipCam.classList.add('hidden');
+                    document.getElementById('app-body').style.backgroundColor = '#020617';
+                    renderer.setClearColor(0x000000, 1);
+
+                    document.getElementById('ar-btn-text').textContent = "เปิดโหมด AR กล้อง + สั่งด้วยมือ";
+                    btnAR.classList.remove('bg-red-500/20', 'border-red-500/50', 'text-red-300');
+                    isARMode = false;
+                }
+
+                curtain.classList.remove('opacity-100', 'pointer-events-auto');
+                curtain.classList.add('opacity-0', 'pointer-events-none');
+            }, 500);
+        });
+
+        // --- Filter Selection ---
+        window.filterHighlight = function(type, evt) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600/30', 'border', 'border-indigo-500/50', 'text-indigo-200');
+                btn.classList.add('text-slate-300');
+            });
+            if (evt && evt.currentTarget) {
+                evt.currentTarget.classList.add('bg-indigo-600/30', 'border', 'border-indigo-500/50', 'text-indigo-200');
+            }
+
+            interactiveObjects.forEach(obj => {
+                const key = obj.userData.key;
+                let visible = (type === 'all') || (type === 'backbone' && (key === 'sugar' || key === 'phosphate')) || (type === key);
+                gsap.to(obj.material, { opacity: visible ? 1.0 : 0.1, transparent: !visible, duration: 0.4 });
+            });
+
+            if (type !== 'all' && bioData[type]) {
+                const matches = interactiveObjects.filter(o => o.userData.key === type);
+                if (matches.length > 0) {
+                    matches.sort((a, b) => Math.abs(a.position.y) - Math.abs(b.position.y));
+                    selectAndFocusObject(matches[0]);
+                }
+            }
+        };
+
+        document.getElementById('btn-reset').addEventListener('click', () => {
+            closeFloatingCard();
+            gsap.to(camera.position, { x: 0, y: 0, z: 11.5, duration: 1 });
+            gsap.to(controls.target, { x: 0, y: 0, z: 0, duration: 1 });
+            gsap.to(dnaGroup.rotation, { x: 0, y: 0, z: 0, duration: 1 });
+        });
+
+        document.getElementById('btn-rotate').addEventListener('click', () => {
+            isAutoRotating = !isAutoRotating;
+            controls.autoRotate = isAutoRotating;
+            document.getElementById('icon-rotate').setAttribute('data-lucide', isAutoRotating ? 'pause' : 'play');
+            lucide.createIcons();
+        });
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate(time) {
+            requestAnimationFrame(animate);
+            controls.update();
+            const t = time * 0.0015;
+
+            orbitingLight1.position.x = Math.sin(t) * 7;
+            orbitingLight1.position.z = Math.cos(t) * 7;
+            orbitingLight2.position.x = Math.cos(t * 0.8) * -7;
+            orbitingLight2.position.z = Math.sin(t * 0.8) * -7;
+
+            if (particleSystem) particleSystem.rotation.y = t * 0.04;
+            if (highlightRing && activeSelectedObject) highlightRing.lookAt(camera.position);
+
+            updateCardPosition();
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('DOMContentLoaded', initEngine);
+    </script>
+</body>
+</html>
